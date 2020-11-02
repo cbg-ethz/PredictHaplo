@@ -1576,7 +1576,7 @@ namespace scythe {
    SCYTHE_CHECK_10(A.isNull(), scythe_null_error,
        "Matrix is NULL");
 
-   char* jobz;
+   const char* jobz;
    int m = (int) A.rows();
    int n = (int) A.cols();
    int mn = (int) std::min(A.rows(), A.cols());

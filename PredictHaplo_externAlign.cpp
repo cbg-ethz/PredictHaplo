@@ -3423,15 +3423,15 @@ int main(int argc, char* argv[]) {
   
   if(do_rm){
     if(do_local_Analysis){
-      system(fas_rm.c_str());
-      system(lab_rm.c_str());
-      system(reads_rm.c_str());
-      system(html_rm.c_str());
-      system(pgm_rm.c_str());
+       int i = system(fas_rm.c_str());
+       i = system(lab_rm.c_str());
+       i = system(reads_rm.c_str());
+       i = system(html_rm.c_str());
+       i = system(pgm_rm.c_str());
     }else{
-      system(fas_global_rm.c_str());
-      system(html_global_rm.c_str());
-      system(pgm_rm.c_str());
+      int i = system(fas_global_rm.c_str());
+      i = system(html_global_rm.c_str());
+      i = system(pgm_rm.c_str());
     }
   }
   

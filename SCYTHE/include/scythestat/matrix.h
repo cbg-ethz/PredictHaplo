@@ -5053,7 +5053,7 @@ namespace scythe {
    */
 
   template<>
-  Matrix<>
+  inline Matrix<>
   operator*<double,Col,Concrete,Col,Concrete>
   (const Matrix<>& lhs, const Matrix<>& rhs)
   {
