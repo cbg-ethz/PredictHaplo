@@ -6,12 +6,12 @@ SCYTHE  =	SCYTHE/include/
 EXOBJS	=	PredictHaplo_externAlign.o
 
 
-all:	PredictHaplo-Paired	
+all:	PredictHaplo	
 
 clean:
-	rm $(EXOBJS) PredictHaplo-Paired
+	rm $(EXOBJS) PredictHaplo
 
-PredictHaplo-Paired:	$(EXOBJS)
+PredictHaplo:	$(EXOBJS)
 	g++ $(CFLAGS)  -o $@  $(EXOBJS)  -lblas -llapack
 PredictHaplo_externAlign.o:	PredictHaplo_externAlign.cpp 
 	g++   $(CFLAGS)  -I$(SCYTHE) -c -o $@  $<

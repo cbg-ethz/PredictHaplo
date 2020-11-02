@@ -1,6 +1,6 @@
 /* 
-    PredictHaplo-Paired: a program for estimating haplotypes from "next generation sequencing" reads
-    Copyright (C) 2014 Volker Roth
+    PredictHaplo: a program for estimating haplotypes from "next generation sequencing" reads
+    Copyright (C) 2011 Volker Roth
  
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -125,347 +125,6 @@ vector<string> tokenize(const string& str,const string& delimiters)
 int qual_subtract;
 bool include_deletions;
 int levels;
-
-
-
-
-
-int parse_sam_line(const vector<string>& tokens, 	string& used_qual, 	vector<int>& seq_b, 	
-		   double& a_score,  char gap_quality,  int& indels, bool& have_quality_scores, int& al_start){
-
-  
-  seq_b.clear();
-  used_qual.clear();
-  indels = 0;
-  
-  //cout <<"tokens.size(): " <<  tokens.size() << endl;
-  for(int j = 11; j< tokens.size();j++){
-    vector<string> tokens_as = tokenize( tokens[j].c_str(),":");
-    if( tokens_as[0] == "AS"){
-      a_score = atof(tokens_as[2].c_str());
-      break;
-    }
-  }
- 
-  al_start = atoi( tokens[3].c_str()) ;
-  
-  
-  vector<int> isAlpha(tokens[5].size(),1);
-  for(int i =0; i< tokens[5].size();i++){
-    if(!isalpha(tokens[5][i]))
-      isAlpha[i] = 0;
-    
-  }
-  
-  vector<int> sub_length_vec;
-  vector<char> symbols;
-  int sub_length =0;
-  for(int i =0; i< tokens[5].size();i++){
-    if(isAlpha[i] == 1){
-      sub_length_vec.push_back( atoi(tokens[5].substr(i-sub_length,sub_length).c_str()));
-      symbols.push_back(tokens[5][i]);
-      sub_length =0;
-    }
-    if(isAlpha[i] == 0)
-      sub_length++;	
-  }
-  
-  
-  
- 
-  
-  have_quality_scores = true;
-  string qual_s = tokens[10];
-  if(qual_s.size() == 1 && qual_s[0] == '*')
-    have_quality_scores = false;
-  int c =0;
-  
-  
-  for(int i =0; i< sub_length_vec.size();i++){
-    
-    
-    if(symbols[i] == 'S')
-      for(int j =0; j< sub_length_vec[i];j++){
-	c++;
-      }
-    
-    if(symbols[i] == 'M')
-      for(int j =0; j< sub_length_vec[i];j++){
-	int k = 0;
-	if(tokens[9][c] == 'A' || tokens[9][c] == 'a')
-	  k=1;
-	else if(tokens[9][c] == 'C' || tokens[9][c] == 'c')
-	  k=2;
-	else if(tokens[9][c] == 'G' || tokens[9][c] == 'g')
-	  k=3;
-	else if(tokens[9][c] == 'T' || tokens[9][c] == 't')
-	  k=4;
-	seq_b.push_back(k);
-	if(have_quality_scores){
-	  //cout << int(qual_s[c] - qual_subtract) <<':'<<pow(10,- int(qual_s[c] - qual_subtract)/10.0)<<' '<<flush; //newCout
-
-	  int q = int(41*(1-pow(10,- int(qual_s[c] - qual_subtract)/10.0)) + qual_subtract);
-	  qual_s[c] = char(q);
-	  used_qual.append(1,qual_s[c]);
-	}
-	else
-	  used_qual.append(1,'I');
-	//cout<< tokens[9][c];
-	c++;
-      }
-    else if(symbols[i] == 'I')
-      for(int j =0; j< sub_length_vec[i];j++){
-	
-	//cout<< tokens[9][c];
-	c++;
-	//indels++;
-      }
-    else if(symbols[i] == 'D')
-      for(int j =0; j< sub_length_vec[i];j++){
-	
-	used_qual.append(1,gap_quality);
-	
-	seq_b.push_back(0);
-	indels++;
-	//cout<< '*';	
-      }
-    else if(symbols[i] == 'P'){
-      // for(int j =0; j< sub_length_vec[i];j++){
-      //cout<< '*';
-      // }
-    }
-    
-    
-  }
-  
-}
-
-
-
-
-
-
-
-
-int parseSAMpaired( string al,  double  max_gap_fraction,  double  min_align_score_fraction, double   min_qual, int min_length, char gap_quality,
-	      double& mean_length,
-	      int& min_seq_start, int& max_seq_start, int& max_sequence_stop,int& min_sequence_stop, bool& have_quality_scores,  
-	      vector<string>& quality_scores, vector<int>& strand, vector<vector<int> >& Reads,  vector<int>& Positions_Start,
-	      vector<string>& IDs ){
-
-  string line, line_stats, line_ID;
-  string tok = ":";
-  vector<string> tokens, tokens2, tokens_as,tokens_pairs, tokens_1, tokens_2;
-  
-  have_quality_scores = true;
-  
-  ifstream inf6(al.c_str(),ios::in);
-  
-  int pair_counter = 0, seq_counter =0, tot_counter =0, singleton_counter = 0;
-  
-  vector<int> seq_b, seq_b_pairs;
-  string used_qual, used_qual_pairs;
-  double a_score,a_score_pairs;
-
-  int al_start,al_start_pairs;
-  
-  int indels,indels_pairs;
-
-  string sRC_1, sRC_2, pairs_1, pairs_2;
-  bool part_1 = false, part_2 = false, is_pair = false;
-  string id,id_1;
-  int RC;
-  mersenne myrng;
-  while( getline(inf6,line,'\n') ){
-    
-    if(line[0] == '@'){
-      continue;
-    }
-
-  
-    tot_counter++;
-   
-    tokens = tokenize(line,"\t");
-    RC =  atoi( tokens[1].c_str());
-    id =  tokens[0];
-
-    stringstream strs;
-    string sRC = binary(RC,  strs);
-
-
-    int sz = sRC.size();
-
-    if(sz > 8)
-      continue;
-   
-    if(sRC[sz-3] == '1' ||  sRC[sz-4]  == '1'  )
-      continue;
-    
-    if(part_1 && id == id_1 && sz == 8 && sRC[0] == '1'){
-      is_pair = true;
-      part_1 = false;
-      pairs_2 = line;
-      sRC_2 = sRC;
-
-      tokens_2 = tokens;
-      pair_counter++;
-    }
-    else{
-      part_1 = true;
-      is_pair = false;
-      pairs_1 = line;
-      sRC_1 = sRC;
-      id_1 = id;
-      tokens_1 = tokens;
-      singleton_counter++;
-    }
-
-
-    if(is_pair){
-      
-
-      parse_sam_line(tokens_1, used_qual, seq_b,  a_score,  gap_quality,indels, have_quality_scores, al_start );
-      parse_sam_line(tokens_2, used_qual_pairs, seq_b_pairs,  a_score_pairs,  gap_quality,indels_pairs, have_quality_scores,al_start_pairs );
-
-      if( seq_b.size() > min_length && seq_b_pairs.size() > min_length 
-	  && double(indels)/seq_b.size() < max_gap_fraction && double(indels_pairs)/seq_b_pairs.size() < max_gap_fraction 
-	  && a_score/seq_b.size()  >  min_align_score_fraction &&  a_score_pairs/seq_b_pairs.size()  >  min_align_score_fraction){
-
-	
-	int StartPos = al_start;
-	vector<int> SEQ_combined = seq_b;
-	string Qscores = used_qual;
-	bool is_gap = false;
-	int Nlength = 0;
-	
-	if(al_start_pairs == al_start){
-	  // of_gaps << 0<<',';
-	}
-
-	if(al_start_pairs < al_start){
-	  StartPos = al_start_pairs;
-	  
-	  is_gap = false;
-	  if(al_start-(al_start_pairs +   (int)seq_b_pairs.size())>0){
-	    is_gap = true;
-	  }
-	
-	  if(is_gap){
-	    
-	    Nlength = al_start-(al_start_pairs +   (int)seq_b_pairs.size());
-	   
-	    
-	    vector<int> Ns(Nlength,7);
-	    
-	    
-	    seq_b_pairs.insert(seq_b_pairs.end(), Ns.begin(), Ns.end());
-	    seq_b_pairs.insert(seq_b_pairs.end(), seq_b.begin(), seq_b.end());
-	    SEQ_combined = seq_b_pairs;
-	    
-	    
-	    
-	    
-	    string Nstr(Nlength,'_');
-	    
-	    
-	    
-	    Qscores = used_qual_pairs + Nstr + used_qual;
-	    
-	    
-	  }else{
-	    
-	    //of_gaps << 0<<',';
-	    vector<int> first_part (seq_b_pairs.begin(),seq_b_pairs.begin() + (al_start - al_start_pairs));
-	    first_part.insert(first_part.end(), seq_b.begin(), seq_b.end());
-	    SEQ_combined = first_part;
-	  
-	    Qscores = used_qual_pairs.substr(0,al_start - al_start_pairs) +  used_qual;
-	  }
-	}else{
-	  if(al_start_pairs > al_start){
-	    
-	    is_gap = false;
-	    if(al_start_pairs -(al_start +   (int)seq_b.size()) >0){
-	      is_gap = true;
-	    }
-	   
-	    if(is_gap){
-	      Nlength =al_start_pairs-(al_start +   (int)seq_b.size());
-	      //of_gaps << Nlength<<',';
-	      
-	      vector<int> Ns(Nlength,7);
-	      
-	      
-	      seq_b.insert(seq_b.end(), Ns.begin(), Ns.end());
-	      seq_b.insert(seq_b.end(), seq_b_pairs.begin(), seq_b_pairs.end());
-	      SEQ_combined = seq_b;
-	      
-	      string Nstr(Nlength,'Z');
-	      Qscores = used_qual + Nstr + used_qual_pairs;
-	    }else{
-	      //of_gaps << 0<<',';
-	      vector<int> first_part (seq_b.begin(),seq_b.begin() + (al_start_pairs - al_start));
-	      
-	      
-	      first_part.insert(first_part.end(), seq_b_pairs.begin(), seq_b_pairs.end());
-	      SEQ_combined = first_part;
-	    
-	      Qscores = used_qual.substr(0,al_start_pairs - al_start) +  used_qual_pairs;
-	    }
-	  }
-	
-	}
-
-	//double unif = myrng.runif();
-
-	//if(unif < 1 && (!is_gap || Nlength < 100)){
-	if(!is_gap || Nlength < 200){
-	  Positions_Start.push_back(  StartPos);
-	  Reads.push_back(SEQ_combined);
-	  IDs.push_back(id);
-	  mean_length += SEQ_combined.size();
-	
-	  string qNeqStr(SEQ_combined.size(),'Z');
-	
-	  quality_scores.push_back(Qscores);
-	  strand.push_back(RC);
-	  seq_counter++;
-	  
-	
-	
-	  /* of_start<<  al_start <<'\t' <<  al_start_pairs << '\t'<< fabs( al_start_pairs-  al_start) << endl;
-	
-	  if(  al_start +seq_b.size() > max_sequence_length)
-	    max_sequence_length =  al_start +seq_b.size();
-	  
-	  if(al_start < min_seq_start)
-	    min_seq_start = al_start;
-	  */
-
-
-	  if(  al_start +seq_b.size() > max_sequence_stop)
-	    max_sequence_stop =  al_start +seq_b.size();
-	  
-	  if(  al_start +seq_b.size() < min_sequence_stop)
-	    min_sequence_stop =  al_start +seq_b.size();
-	  
-	  if(al_start < min_seq_start)
-	    min_seq_start = al_start;
-	  
-	  if(al_start > max_seq_start)
-	    max_seq_start = al_start;
-	  
-	}
-      }
-
-    }
-
-  }
-
-  // of_start.close();
-  return 0;
-}
-
 
 int parseSAM( string al,  double  max_gap_fraction,  double  min_align_score_fraction, double   min_qual, int min_length, char gap_quality,
 	      double& mean_length,
@@ -845,7 +504,7 @@ int MultiNomialDPMReadsSemiEntropy(const int& nSample,
   }
     
 
-  cout <<"Now running MCMC iterations... " << endl;
+
 
 
  
@@ -1058,21 +717,16 @@ int MultiNomialDPMReadsSemiEntropy(const int& nSample,
     if(i > burnin){
       piMean = piMean + pi;
     }
-    /*
-      if(i%50 == 0){
-      if(i > burnin)
-      cout<<i<<' '<< " piMean: " << t(piMean)/(i-burnin+1);
-      else{
-      cout<<i<<' '<< " pi: " << t(pi);
-      }
-      }
-    */
     if(i%50 == 0){
-      cout << i<<' '<<flush;
+      if(i > burnin)
+	cout<<i<<' '<< " piMean: " << t(piMean)/(i-burnin+1);
+      else{
+	cout<<i<<' '<< " pi: " << t(pi);
+      }
     }
   } // end sampling with entropy thresholding
 
-  cout << endl;
+
 
   
   // recompute MNprobMEAN for positions not selected 
@@ -1249,7 +903,6 @@ int visualizeAlignments(int K, int WindowStart, int GD, const vector<int>& Posit
 	   if(!entropy_selection[i+WindowStart-1] && !is_SNV[i])
 	     continue;
 	 }
-
 	char nuc =  SQ_string[i+WindowStart-1];
 	
 	if(entropy_selection[i+WindowStart-1]){
@@ -1730,44 +1383,14 @@ int visualizeAlignments(int K, int WindowStart, int GD, const vector<int>& Posit
     
       
        for(int k=0; k< reconstructedHaplos.size();k++){
-	 
-	 ofFASTA<< ">" << "reconstructed_"<<k<<endl;
-	 ofFASTA<<";Freq:"<< reconstructedFrequency[k] << endl;
-	 ofFASTA<<";Overlap quality scores (5,10):";
-	 ofFASTA << reconstructed_overlaps[k][4]<<","<<reconstructed_overlaps[k][9]<<endl;
-	 if(have_true_haplotypes){
-	   ofFASTA <<";Best match:true_"<< match[k]<< endl;
-	   ofFASTA <<";Costs:" <<match_costs[k]<< endl;
-	 }
-	 ofFASTA <<";Confidence scores"<<endl; 
-	 ofFASTA <<";"; 
-	 for( int i =0; i< GD; i++){
-	   if(i>0 && i%69==0)
-	     ofFASTA<< endl<<";"; 
-	   double rconf = reconstructedConf[k][i];
-	   
-	   int conf =  floor(1.0/9.0*(pow(10,rconf)-1) *(126-33))+33;
-	   
-	   char myChar;
-	   myChar = (char)conf;
-	   ofFASTA << myChar;
-	 }  
-	 ofFASTA << endl; 
-	 ofFASTA <<";EndOfComments"<<endl; 
-
-
-	 /*
-	   for(int k=0; k< reconstructedHaplos.size();k++){
-	   ofFASTA<< ">" << "reconstructed_"<<k<<". Freq:"<< reconstructedFrequency[k] << ". Overlap quality scores:";
+	 ofFASTA<< ">" << "reconstructed_"<<k<<". Freq:"<< reconstructedFrequency[k] << ". Overlap quality scores:";
 	   for(int i =0; i< reconstructed_overlaps[k].size();i++){
-	   ofFASTA << i+1<<":"<< reconstructed_overlaps[k][i]<<"|";
+	     ofFASTA << i+1<<":"<< reconstructed_overlaps[k][i]<<"|";
 	   }
 	   if(have_true_haplotypes){
-	   ofFASTA <<". "<<"Best match: true_"<< match[k]<<". Costs: " <<match_costs[k];
+	     ofFASTA <<". "<<"Best match: true_"<< match[k]<<". Costs: " <<match_costs[k];
 	   }
 	   ofFASTA << endl;
-	 */
-	 
  
 	for( int i =0; i< GD; i++){
 	  if(i>0 && i%70==0)
@@ -1871,16 +1494,15 @@ int local_Analysis(int min_overlap, int K, int  nSample, int nT, int max_reads_i
 	}
       }
 
-     
-      //cout << "coverage in current window: "<<endl;
+      
+      cout << "coverage in current window: "<<endl;
       int min_cov = coverage[0];
       for(int i =0; i<  coverage.size(); i++){
-	//cout << coverage[i]<<"|";
+	cout << coverage[i]<<"|";
 	if( coverage[i]<min_cov)
 	  min_cov = coverage[i];
       }
-      
-      cout << endl << "Minimum coverage in current window: "<< min_cov << endl;
+      cout << endl << "Min coverage: "<< min_cov << endl;
       
      
       vector<int> v( reads_in_window.size());
@@ -1899,7 +1521,7 @@ int local_Analysis(int min_overlap, int K, int  nSample, int nT, int max_reads_i
      
       int number_of_reads_in_window =  reads_in_window.size();
      
-      cout << "Number of reads in window: " << number_of_reads_in_window <<" Selected upper bound: "<<  max_reads_in_window << endl;
+      cout << number_of_reads_in_window <<' '<<  max_reads_in_window << endl;
       if(number_of_reads_in_window > max_reads_in_window){
 
 
@@ -2031,7 +1653,6 @@ int local_Analysis(int min_overlap, int K, int  nSample, int nT, int max_reads_i
 
       for( int i =0; i< GD; i++){
 	char nuc =  SQ_string[i+WindowStart-1];
-	//cout << nuc;
 	if(nuc == '-') 
 	  refSeq[i] = 0;
 	else 
@@ -2049,7 +1670,7 @@ int local_Analysis(int min_overlap, int K, int  nSample, int nT, int max_reads_i
 		else 
 		  refSeq[i] = 5;
       }
-      //cout << endl;
+
       MNprobMEAN = 0;
       MultiNomialDPMReadsSemiEntropy(					  
 				     nSample,
@@ -2380,14 +2001,11 @@ int local_Analysis(int min_overlap, int K, int  nSample, int nT, int max_reads_i
 	    if(fabs( log2(strand_K[cc])) < 3)
 	    */
 	    //	    if((fabs( log2(strand_K[cc])) < 5) && reconstructed_overlaps[cc][reconstructed_overlaps[cc].size()-1]>10)
-	    if(reconstructed_overlaps[cc][reconstructed_overlaps[cc].size()-1]>20){
+	    if(reconstructed_overlaps[cc][reconstructed_overlaps[cc].size()-1]>10)
 	      good_clusters++;
-	    }else{
-	      good_clusters--;
-	    }
 
 	    if(reconstructed_overlaps[cc][reconstructed_overlaps[cc].size()-1]<5){
-	      good_clusters -= 2;
+	      good_clusters -= 3;
 	    }
 
 	    cc++; 
@@ -2725,7 +2343,7 @@ int  reconstruct_global(int min_overlap, int K, int  nSample, vector<vector<int>
      
      
      
-     double increment =  myrng.runif()*50 + 0.4*WindowIncrement;
+     double increment =  myrng.runif()*30 + 0.3*WindowIncrement;
      
      if(!first){
        WindowStart = WindowStart-int( increment);
@@ -2884,7 +2502,7 @@ int  reconstruct_global(int min_overlap, int K, int  nSample, vector<vector<int>
 
    ////////////////
    Matrix<double> maxConf(GD,K);
-   /*
+   
    for(int l =0; l<GD; l++){
      
      
@@ -2907,60 +2525,6 @@ int  reconstruct_global(int min_overlap, int K, int  nSample, vector<vector<int>
 
    /////////////////////
      
-   */
-
-
-
-
-
-
-
-
-
- //////////////////////////////////////
-
-
-      Matrix<double> freq_M(K,levels);
-      freq_M = 0;
-      vector< Matrix<double> > freq(GD,freq_M);
-      vector<int> nK(K,0);
-      for( int k =0; k< K; k++){
-	for( int i =0; i< n; i++){
-	  if( L[i] == k){ // the reads belonging to cluster k
-	    nK[k] += 1;
-	    for(int p =0; p<GD; p++){
-
-	      int  idx = p - Positions_Start[ reads_in_window[i]]+WindowStart;
-
-              if(idx >= 0 && idx <  Reads[ reads_in_window[i]].size()){ 
-		int l = Reads[ reads_in_window[i]][idx];
-		if(include_deletions){
-		  if(l <5)
-		    freq[p](k, l) += 1;
-		}else{
-		  if(l > 0 && l <5)
-		    freq[p](k, l) += 1;
-		}
-	      }
-	    }
-	  }
-	}
-	if(nK[k] ==0)
-	  nK[k] = 1;
-	for(int p =0; p<GD; p++){
-	  freq[p](k,_) /= sum(freq[p](k,_));//nK[k];
-	}
-      }
-
-      for( int k =0; k< K; k++){
-	for( int l =0; l< GD; l++){
-	  maxConf(l,k) = freq[l](k,maxTab(l,k));
-	}
-      }
-
-    
-
-
 
    
    
@@ -3242,22 +2806,6 @@ int  reconstruct_global(int min_overlap, int K, int  nSample, vector<vector<int>
 }
 
 
-
-// Could use pass by copy to avoid changing vector
-double median(std::vector<int> &v)
-{
-  size_t n = v.size() / 2;
-  std::nth_element(v.begin(), v.begin()+n, v.end());
-  if(v.size()%2 == 1)
-  {
-    return v[n];
-  }else
-  {
-    std::nth_element(v.begin(), v.begin()+n-1, v.end());
-    return 0.5*(v[n]+v[n-1]);
-  }
-}
-
 int main(int argc, char* argv[]) {
   if(argc < 2){
     cout <<"usage: PredictHaplo <config.txt>" << endl;
@@ -3421,15 +2969,17 @@ int main(int argc, char* argv[]) {
 
 
   
+
+  
   if(do_rm){
     if(do_local_Analysis){
-      system(fas_rm.c_str());
+      //system(fas_rm.c_str());
       system(lab_rm.c_str());
       system(reads_rm.c_str());
       system(html_rm.c_str());
       system(pgm_rm.c_str());
     }else{
-      system(fas_global_rm.c_str());
+      //system(fas_global_rm.c_str());
       system(html_global_rm.c_str());
       system(pgm_rm.c_str());
     }
@@ -3503,38 +3053,19 @@ int main(int argc, char* argv[]) {
 
   int error_flag = 0;
 
- 
- 
-  
-  if(FASTAreads.size() >1){
-    for(int i =1; i< FASTAreads.size(); i++){
-      
-      
-      
-      error_flag = parseSAM(FASTAreads[i],  max_gap_fraction, min_align_score_fraction, min_qual,  min_length, gap_quality,  mean_length, min_seq_start, max_seq_start, max_sequence_stop, min_sequence_stop, have_quality_scores,  quality_scores, strand, Reads,  Positions_Start,IDs );
-      
-      
-      
-      if(error_flag>0)
-	return 1;
-      cout <<  "After parsing the reads in file " <<FASTAreads[i]<< ": average read length= "<< mean_length/Reads.size()<<' '<< Reads.size() <<  endl;
-      
-      
-      }
+  for(int i =0; i< FASTAreads.size(); i++){
+    error_flag = parseSAM(FASTAreads[i],  max_gap_fraction, min_align_score_fraction, min_qual,  min_length, gap_quality,
+			  mean_length, min_seq_start, max_seq_start, max_sequence_stop, min_sequence_stop,
+			  have_quality_scores,  quality_scores, strand, Reads,  Positions_Start,IDs );
+
+
+
+    if(error_flag>0)
+      return 1;
+    cout <<  "After parsing the reads in file " <<FASTAreads[i]<< ": average read length= "<< mean_length/Reads.size()<< endl;
   }
-
-
-
-  error_flag = parseSAMpaired(FASTAreads[0],  max_gap_fraction, min_align_score_fraction, min_qual,  min_length, gap_quality,  mean_length, min_seq_start, max_seq_start, max_sequence_stop, min_sequence_stop,have_quality_scores,  quality_scores, strand, Reads,  Positions_Start,IDs );
-
   
-
-  if(error_flag>0)
-    return 1;
-  cout <<  "After parsing the reads in file " <<FASTAreads[0]<< ": average read length= "<< mean_length/Reads.size()<< ' '<< Reads.size() <<  endl;
-  
-  
-  
+ 
   if(count >10){
     if( reconstruction_start >min_seq_start && reconstruction_start < max_sequence_stop)
       min_seq_start =  reconstruction_start; 
@@ -3546,24 +3077,19 @@ int main(int argc, char* argv[]) {
   cout <<  "There are "<<Reads.size()<< " reads"<< endl;
 
   
-  vector<int> si(Reads.size());
-  for(int i = 0; i < Reads.size(); i++){
-    si[i] = Reads[i].size();
-  }
   
-
-  mean_length =  median(si); // mean_length/Reads.size();
+  mean_length =  mean_length/Reads.size();
  
-  si.clear();
+
  
   local_window_size = int(local_window_size_factor*mean_length);
   int min_overlap = int(min_overlap_factor*local_window_size);
 
  
 
-  cout << "Median of read lengths: " << mean_length << endl;
+   cout << "Average read length: " << mean_length << endl;
   cout << "Local window size: " <<  local_window_size << endl;
-  cout << "Minimum overlap of reads to local analysis windows: " << min_overlap << endl;
+  cout << "min_overlap : " << min_overlap << endl;
 
   
 
@@ -3703,8 +3229,7 @@ int main(int argc, char* argv[]) {
     inf6.close();
     haplos_fstr = "myREFERENCE_MSA.txt";
 
-
-    /// haplos
+	 /// haplos
 
 
 	string line, line_ID, line_stats;
@@ -4013,7 +3538,8 @@ int main(int argc, char* argv[]) {
 
   
   max_index = min_i;
- 
+
+  
  
   int select_start =  max_index; 
   reconstruct_global( min_overlap,  K, nSample, WindowStartStop,  local_window_size, select_start, nT,  max_sequence_stop+1,  min_seq_start, Positions_Start, Reads,  have_quality_scores, quality_scores, IDs, strand, prefix,SQ_string, have_true_haplotypes, trueHaplos, trueHaplo_Positions_Start, trueHaplo_IDs,  entropy_threshold, entropy_fraction, entropy_select);

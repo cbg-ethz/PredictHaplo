@@ -1,0 +1,12 @@
+PredictHaplo has been tested with gcc 5.4 under Ubuntu Linux. 
+It might compile on similar platforms with gcc version 5.4 or later.
+
+1) Unpack the "PredictHaplo-1.1.tgz" tar-bundle:
+
+   	  tar xfvz PredictHaplo-1.1.tgz
+       
+2)  Type
+
+        make
+
+3) Done, hopefully :-)
