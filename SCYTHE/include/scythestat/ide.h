@@ -90,7 +90,7 @@
 
 #include <cmath>
 #include <algorithm>
-
+#include <complex>
 
 namespace scythe {
 
@@ -174,14 +174,14 @@ namespace scythe {
   
     SCYTHE_VIEW_RETURN(T, RO, RS, temp)
   }
-  
+
   template <typename T, matrix_order O, matrix_style S>
   Matrix<T, O, Concrete>
   cholesky (const Matrix<T,O,S>& A)
   {
     return cholesky<O,Concrete>(A);
   }
-  
+
   namespace {
     /* This internal routine encapsulates the  
      * algorithm used within chol_solve and lu_solve.  
@@ -256,7 +256,6 @@ namespace scythe {
   * \throw scythe_conformation_error (Level 1)
   *
   */
-  
   template <matrix_order RO, matrix_style RS, typename T,
             matrix_order PO1, matrix_style PS1,
             matrix_order PO2, matrix_style PS2,
@@ -265,7 +264,6 @@ namespace scythe {
   chol_solve (const Matrix<T,PO1,PS1>& A, const Matrix<T,PO2,PS2>& b,
               const Matrix<T,PO3,PS3>& M)
   {
- 
     SCYTHE_CHECK_10(A.isNull(), scythe_null_error,
         "A is NULL")
     SCYTHE_CHECK_10(! b.isColVector(), scythe_dimension_error,
@@ -289,7 +287,7 @@ namespace scythe {
    
     return result;
   }
-  
+
   template <typename T, matrix_order PO1, matrix_style PS1,
             matrix_order PO2, matrix_style PS2,
             matrix_order PO3, matrix_style PS3>
@@ -297,10 +295,9 @@ namespace scythe {
   chol_solve (const Matrix<T,PO1,PS1>& A, const Matrix<T,PO2,PS2>& b,
               const Matrix<T,PO3,PS3>& M)
   {
-   
     return chol_solve<PO1,Concrete>(A,b,M);
   }
-  
+
  /*!\brief Solve \f$Ax=b\f$ for x via backward substitution, 
   * using Cholesky decomposition
   *
@@ -325,17 +322,16 @@ namespace scythe {
   * \throw scythe_alloc_error (Level 1)
   *
   */
-  
   template <matrix_order RO, matrix_style RS, typename T,
             matrix_order PO1, matrix_style PS1,
             matrix_order PO2, matrix_style PS2>
   Matrix<T,RO,RS>
   chol_solve (const Matrix<T,PO1,PS1>& A, const Matrix<T,PO2,PS2>& b)
   {
-    // NOTE: cholesky() call does check for square/posdef of A,
-    // and the overloaded chol_solve call handles dimensions
-    //
- 
+    /* NOTE: cholesky() call does check for square/posdef of A,
+     * and the overloaded chol_solve call handles dimensions
+     */
+  
     return chol_solve<RO,RS>(A, b, cholesky<RO,Concrete>(A));
   }
  
@@ -344,7 +340,6 @@ namespace scythe {
   Matrix<T,PO1,Concrete>
   chol_solve (const Matrix<T,PO1,PS1>& A, const Matrix<T,PO2,PS2>& b)
   {
-  
     return chol_solve<PO1,Concrete>(A, b);
   }
 
@@ -925,10 +920,10 @@ namespace scythe {
 #ifdef SCYTHE_LAPACK
 
   template<>
-  Matrix<>
+  inline Matrix<>
   cholesky (const Matrix<>& A)
   {
-    SCYTHE_DEBUG_MSG("-------------------------------------------------------Using lapack/blas for cholesky");
+    SCYTHE_DEBUG_MSG("Using lapack/blas for cholesky");
     SCYTHE_CHECK_10(! A.isSquare(), scythe_dimension_error,
         "Matrix not square");
     SCYTHE_CHECK_10(A.isNull(), scythe_null_error,
@@ -957,13 +952,12 @@ namespace scythe {
 
     return AA;
   }
- 
 
   template<>
-  Matrix<>
+  inline Matrix<>
   chol_solve (const Matrix<>& A, const Matrix<>& b, const Matrix<>& M)
   {
-    SCYTHE_DEBUG_MSG("--------------------------------------------Using lapack/blas for chol_solve");
+    SCYTHE_DEBUG_MSG("Using lapack/blas for chol_solve");
     SCYTHE_CHECK_10(A.isNull(), scythe_null_error,
         "A is NULL")
     SCYTHE_CHECK_10(! b.isColVector(), scythe_dimension_error,
@@ -977,7 +971,6 @@ namespace scythe {
 
     // The algorithm modifies b in place.  We make a copy.
     Matrix<> bb = b;
-   
 
     // Get array pointers and set up some vars
     const double* Marray = M.getArray();
@@ -997,10 +990,10 @@ namespace scythe {
   }
 
   template<>
-  Matrix<>
+  inline Matrix<>
   chol_solve (const Matrix<>& A, const Matrix<>& b)
   {
-    SCYTHE_DEBUG_MSG("----------------------------------Using lapack/blas for chol_solve");
+    SCYTHE_DEBUG_MSG("Using lapack/blas for chol_solve");
     SCYTHE_CHECK_10(A.isNull(), scythe_null_error,
         "A is NULL")
     SCYTHE_CHECK_10(! b.isColVector(), scythe_dimension_error,
@@ -1146,7 +1139,7 @@ namespace scythe {
    * \throw scythe_null_error (Level 1)
    * \throw scythe_lapack_internal_error (Level 1)
    */
-  QRdecomp
+  inline QRdecomp
   qr_decomp (const Matrix<>& A)
   {
     SCYTHE_DEBUG_MSG("Using lapack/blas for qr_decomp");
@@ -1283,7 +1276,7 @@ namespace scythe {
 
     Matrix<> result(A.cols(), b.cols(), false);
     for (uint i = 0; i < QR.pivot.size(); ++i)
-      result(i, _) = bb(QR.pivot(i), _);
+      result(i, _) = bb((uint) QR.pivot(i), _);
     return result;
   }
 
@@ -1404,7 +1397,7 @@ namespace scythe {
   }
 
   template<>
-  Matrix<>
+  inline Matrix<>
   invpd (const Matrix<>& A)
   {
     SCYTHE_DEBUG_MSG("Using lapack/blas for invpd");
@@ -1442,7 +1435,7 @@ namespace scythe {
   }
 
   template<>
-  Matrix<>
+  inline Matrix<>
   invpd (const Matrix<>& A, const Matrix<>& M)
   {
     SCYTHE_DEBUG_MSG("Using lapack/blas for invpd");
@@ -1475,7 +1468,7 @@ namespace scythe {
   }
 
   template <>
-  Matrix<>
+  inline Matrix<>
   inv(const Matrix<>& A)
   {
     SCYTHE_DEBUG_MSG("Using lapack/blas for inv");
@@ -1576,7 +1569,7 @@ namespace scythe {
    SCYTHE_CHECK_10(A.isNull(), scythe_null_error,
        "Matrix is NULL");
 
-   const char* jobz;
+   char* jobz;
    int m = (int) A.rows();
    int n = (int) A.cols();
    int mn = (int) std::min(A.rows(), A.cols());
@@ -1758,8 +1751,76 @@ namespace scythe {
     return resobj;
   }
 
+ 
+  struct GeneralEigen {
+    Matrix<std::complex<double> > values;
+    Matrix<> vectors;
+  };
+
+  inline GeneralEigen
+  geneigen (const Matrix<>& A, bool vectors=true)
+  {
+    SCYTHE_CHECK_10 (! A.isSquare(), scythe_dimension_error,
+        "Matrix not square");
+    SCYTHE_CHECK_10 (A.isNull(), scythe_null_error, "Matrix is NULL");
+
+    Matrix<> AA = A; // Copy A
+
+    // Get a point to the internal array and set up some vars
+    double* Aarray = AA.getArray(); // internal array points
+    int order = (int) AA.rows();    // input matrix is order x order
+    
+    GeneralEigen result;
+
+    int info, lwork;
+    double *left, *right, *valreal, *valimag, *work, tmp;
+    valreal = new double[order];
+    valimag = new double[order];
+    left = right = (double *) 0;
+    char leftvecs[1], rightvecs[1];
+    leftvecs[0] = rightvecs[0] = 'N';
+    if (vectors) {
+      rightvecs[0] = 'V';
+      result.vectors = Matrix<>(order, order, false);
+      right = result.vectors.getArray();
+    }
+
+    // Get working are size
+    lwork = -1;
+    lapack::dgeev_ (leftvecs, rightvecs, &order, Aarray, &order,
+                    valreal, valimag, left, &order, right, &order,
+                    &tmp, &lwork, &info);
+
+    SCYTHE_CHECK_10(info != 0, scythe_lapack_internal_error,
+        "Internal error in LAPACK routine dgeev");
+    lwork = (int) tmp;
+    work = new double[lwork];
+
+    // Run for real
+    lapack::dgeev_ (leftvecs, rightvecs, &order, Aarray, &order,
+                    valreal, valimag, left, &order, right, &order,
+                    work, &lwork, &info);
+    SCYTHE_CHECK_10(info != 0, scythe_lapack_internal_error,
+        "Internal error in LAPACK routine dgeev");
+
+    // Pack value into result
+    result.values = Matrix<std::complex<double> > (order, 1, false);
+    for (unsigned int i = 0; i < result.values.size(); ++i)
+      result.values(i) = std::complex<double> (valreal[i], valimag[i]);
+
+    // Clean up
+    delete[] valreal;
+    delete[] valimag;
+    delete[] work;
+
+
+    return result;
+  }
+
+
+
 #endif
 
-} // end namespace scythe
+  } // end namespace scythe
 
 #endif /* SCYTHE_IDE_H */

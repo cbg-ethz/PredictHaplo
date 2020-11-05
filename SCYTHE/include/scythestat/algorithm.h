@@ -45,6 +45,15 @@
 #include "scythestat/matrix_random_access_iterator.h"
 #endif
 
+// These are just goofy
+
+#ifdef SCYTHE_RPACK
+#undef DO
+#undef DS
+#undef SO
+#undef SS
+#endif
+
 namespace scythe {
   namespace {
     typedef unsigned int uint;

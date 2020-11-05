@@ -115,7 +115,7 @@ namespace scythe {
 	* \see prodc(const Matrix<T,PO,PS> &A)
 	*/
 
-  SCYTHE_STATMETH_COL(sum);
+  SCYTHE_STATMETH_COL(sum)
   
   /* Calculate the product of a Matrix */
   
@@ -156,7 +156,7 @@ namespace scythe {
 	* \see prod(const Matrix<T,PO,PS> &A)
 	*/
 	
-  SCYTHE_STATMETH_COL(prod);
+  SCYTHE_STATMETH_COL(prod)
   
   /* Calculate the mean of a Matrix */
     
@@ -200,7 +200,7 @@ namespace scythe {
 	* \see variancec(const Matrix<T,PO,PS> &A)
 	*/
 
-  SCYTHE_STATMETH_COL(mean);
+  SCYTHE_STATMETH_COL(mean)
   
   /* Calculate the median of a matrix.  Uses a sort but I'll implement
    * the randomized alg when I figure out how to generalize it to
@@ -224,14 +224,14 @@ namespace scythe {
   T
   median (const Matrix<T,PO,PS> &A)
   {
-    Matrix<T, PO, PS> temp(A);
+    Matrix<T, PO, Concrete> temp(A);
     uint n = temp.size();
 
     sort(temp.begin(), temp.end());
     if (n % 2 == 0)
       return ((temp[n / 2] + temp[n / 2 - 1]) / 2);
     else
-      return temp[(uint) ::floor(n / 2)];
+      return temp[(uint) ::floor(n / 2.0)];
   }
 
   /* Calculate the median of each column of a matrix */
@@ -250,7 +250,7 @@ namespace scythe {
 	* \see modec(const Matrix<T,PO,PS> &A)
 	*/
 
-  SCYTHE_STATMETH_COL(median);
+  SCYTHE_STATMETH_COL(median)
 
   /* Calculate the mode of a matrix */
   
@@ -271,7 +271,7 @@ namespace scythe {
   T
   mode (const Matrix<T,PO,PS> &A)
   {
-    Matrix<T, PO, PS> temp(A);
+    Matrix<T, PO, Concrete> temp(A);
     
     sort(temp.begin(), temp.end());
 
@@ -310,7 +310,7 @@ namespace scythe {
 	* \see medianc(const Matrix<T,PO,PS> &A)
 	*/
 
-  SCYTHE_STATMETH_COL(mode);
+  SCYTHE_STATMETH_COL(mode)
 
   /* Calculate the variance of a Matrix */
 
@@ -366,7 +366,7 @@ namespace scythe {
 	* \see meanc(const Matrix<T,PO,PS> &A)
 	*/
 	
-  SCYTHE_STATMETH_COL(var);
+  SCYTHE_STATMETH_COL(var)
 
  /*! 
 	* \brief Calculate the variance of a Matrix
@@ -425,7 +425,7 @@ namespace scythe {
 	* \see variancec(const Matrix<T,PO,PS> &A)
 	*/
 	
-  SCYTHE_STATMETH_COL(sd);
+  SCYTHE_STATMETH_COL(sd)
 
   /*! 
 	* \brief Calculate the standard deviation of a Matrix
@@ -484,7 +484,7 @@ namespace scythe {
 	* \see kurtosisc(const Matrix<T,PO,PS> &A)
 	*/
 
-  SCYTHE_STATMETH_COL(skew);
+  SCYTHE_STATMETH_COL(skew)
   
   /* Calculate the kurtosis of a Matrix */
     
@@ -522,7 +522,7 @@ namespace scythe {
 	* \see kurtosis(const Matrix<T,PO,PS> &A)
 	*/
 
-  SCYTHE_STATMETH_COL(kurtosis);
+  SCYTHE_STATMETH_COL(kurtosis)
 
   /* Calculates the maximum element in a Matrix */
   /*! 
@@ -555,7 +555,7 @@ namespace scythe {
 	* \see minc(const Matrix<T,PO,PS> &A)
 	*/
   
-  SCYTHE_STATMETH_COL(max);
+  SCYTHE_STATMETH_COL(max)
 
   /* Calculates the minimum element in a Matrix */
   
@@ -587,7 +587,7 @@ namespace scythe {
 	* \see maxc(const Matrix<T,PO,PS> &A)
 	*/
   
-  SCYTHE_STATMETH_COL(min);
+  SCYTHE_STATMETH_COL(min)
 
   /* Find the index of the max element */  
 	/*! 
@@ -620,7 +620,7 @@ namespace scythe {
 	* \see minindc(const Matrix<T,PO,PS> &A)
 	*/
 
-  SCYTHE_STATMETH_COL(maxind);
+  SCYTHE_STATMETH_COL(maxind)
   
   /* Find the index of the min element */
   
@@ -652,7 +652,7 @@ namespace scythe {
 	* \see minc(const Matrix<T,PO,PS> &A)
 	* \see maxindc(const Matrix<T,PO,PS> &A)
 	*/
-  SCYTHE_STATMETH_COL(minind);
+  SCYTHE_STATMETH_COL(minind)
 
 } // end namespace scythe
 

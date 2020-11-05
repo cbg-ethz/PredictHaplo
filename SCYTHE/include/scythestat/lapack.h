@@ -47,7 +47,7 @@ namespace scythe {
     extern "C" {
 
       /* Matrix multiplication and gaxpy */
-      void dgemm_ (const char* transa, const char* transb, const int* m,
+      void dgemm_ (char* transa, char* transb, const int* m,
                    const int* n, const int* k, const double* alpha,
                    const double* a, const int* lda, const double* b,
                    const int* ldb, const double* beta, double* c, 
@@ -86,12 +86,12 @@ namespace scythe {
       void dpotri_(const char* uplo, const int* n, double* a,
                    const int* lda, int* info);
 
-      /* Eigenvalues/vectors for general (nonsymmetric) square matrices
+      /* Eigenvalues/vectors for general (nonsymmetric) square matrices */
       void dgeev_(const char* jobvl, const char* jobvr, const int* n,
                   double* a, const int* lda, double* wr, double* wi,
                   double* vl, const int* ldvl, double* vr, const int* ldvr,
                   double* work, const int* lwork, int* info);
-                  */
+      
 
       /* Eigenvalues/vectors for symmetric matrices */
       void dsyevr_ (const char* jobz, const char* range, const char* uplo,
