@@ -17,6 +17,10 @@
  */
 
 
+// TODO: where does one actually get this definition from?
+#define R_finite(x) std::isfinite(x)
+
+
 #include <iostream>
 #include <fstream>
 #include <cmath>
