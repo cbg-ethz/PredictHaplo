@@ -1,4 +1,4 @@
-/* 
+/*
  * Scythe Statistical Library Copyright (C) 2000-2002 Andrew D. Martin
  * and Kevin M. Quinn; 2002-present Andrew D. Martin, Kevin M. Quinn,
  * and Daniel Pemstein.  All Rights Reserved.
@@ -14,7 +14,7 @@
  *
  *
  */
- 
+
 /*!  \file ide.h
  *
  * \brief Definitions for inversion and decomposition functions that
@@ -97,8 +97,8 @@ namespace scythe {
   namespace {
     typedef unsigned int uint;
   }
-  
-  /*! 
+
+  /*!
    * \brief Cholesky decomposition of a symmetric positive-definite
    * matrix.
    *
@@ -133,10 +133,10 @@ namespace scythe {
     // Rounding errors can make this problematic.  Leaving out for now
     //SCYTHE_CHECK_20(! A.isSymmetric(), scythe_type_error,
     //    "Matrix not symmetric");
-    
+
     Matrix<T,RO,Concrete> temp (A.rows(), A.cols(), false);
     T h;
-    
+
     if (PO == Row) { // row-major optimized
       for (uint i = 0; i < A.rows(); ++i) {
         for (uint j = i; j < A.cols(); ++j) {
@@ -171,7 +171,7 @@ namespace scythe {
         }
       }
     }
-  
+
     SCYTHE_VIEW_RETURN(T, RO, RS, temp)
   }
 
@@ -183,8 +183,8 @@ namespace scythe {
   }
 
   namespace {
-    /* This internal routine encapsulates the  
-     * algorithm used within chol_solve and lu_solve.  
+    /* This internal routine encapsulates the
+     * algorithm used within chol_solve and lu_solve.
      */
     template <typename T,
               matrix_order PO1, matrix_style PS1,
@@ -208,7 +208,7 @@ namespace scythe {
         }
         y[i] = (b[i] - sum) / L(i, i);
       }
-          
+
       // solve M'*x = y
       if (U.isNull()) { // A= LL^T
         for (int i = b.size() - 1; i >= 0; --i) {
@@ -277,14 +277,14 @@ namespace scythe {
 
     T *y = new T[A.rows()];
     T *x = new T[A.rows()];
-    
+
     solve(M, Matrix<>(), b, x, y);
 
     Matrix<T,RO,RS> result(A.rows(), 1, x);
-     
+
     delete[]x;
     delete[]y;
-   
+
     return result;
   }
 
@@ -298,7 +298,7 @@ namespace scythe {
     return chol_solve<PO1,Concrete>(A,b,M);
   }
 
- /*!\brief Solve \f$Ax=b\f$ for x via backward substitution, 
+ /*!\brief Solve \f$Ax=b\f$ for x via backward substitution,
   * using Cholesky decomposition
   *
   * This function solves the system of equations \f$Ax = b\f$ via
@@ -331,10 +331,10 @@ namespace scythe {
     /* NOTE: cholesky() call does check for square/posdef of A,
      * and the overloaded chol_solve call handles dimensions
      */
-  
+
     return chol_solve<RO,RS>(A, b, cholesky<RO,Concrete>(A));
   }
- 
+
   template <typename T, matrix_order PO1, matrix_style PS1,
             matrix_order PO2, matrix_style PS2>
   Matrix<T,PO1,Concrete>
@@ -343,7 +343,7 @@ namespace scythe {
     return chol_solve<PO1,Concrete>(A, b);
   }
 
-  
+
   /*!\brief Calculates the inverse of a symmetric positive definite
    * matrix, given a lower triangular matrix resulting from Cholesky
    * decomposition.
@@ -376,15 +376,15 @@ namespace scythe {
         "A is NULL")
     SCYTHE_CHECK_10(! A.isSquare(), scythe_dimension_error,
         "A is not square")
-    SCYTHE_CHECK_10(A.rows() != M.cols() || A.cols() != M.rows(), 
+    SCYTHE_CHECK_10(A.rows() != M.cols() || A.cols() != M.rows(),
         scythe_conformation_error, "A and M do not conform");
-      
+
     // for chol_solve block
     T *y = new T[A.rows()];
     T *x = new T[A.rows()];
     Matrix<T, RO, Concrete> b(A.rows(), 1); // full of zeros
     Matrix<T, RO, Concrete> null;
-    
+
     // For final answer
     Matrix<T, RO, Concrete> Ainv(A.rows(), A.cols(), false);
 
@@ -436,9 +436,9 @@ namespace scythe {
             matrix_order PO, matrix_style PS>
   Matrix<T, RO, RS>
   invpd (const Matrix<T, PO, PS>& A)
-  { 
+  {
     // Cholesky checks to see if A is square and symmetric
-  
+
     return invpd<RO,RS>(A, cholesky<RO,Concrete>(A));
   }
 
@@ -458,8 +458,8 @@ namespace scythe {
     template <matrix_order PO1, matrix_style PS1, typename T,
               matrix_order PO2, matrix_order PO3, matrix_order PO4>
     inline T
-    lu_decomp_alg(Matrix<T,PO1,PS1>& A, Matrix<T,PO2,Concrete>& L, 
-                  Matrix<T,PO3,Concrete>& U, 
+    lu_decomp_alg(Matrix<T,PO1,PS1>& A, Matrix<T,PO2,Concrete>& L,
+                  Matrix<T,PO3,Concrete>& U,
                   Matrix<unsigned int, PO4, Concrete>& perm_vec)
     {
       if (A.isRowVector()) {
@@ -468,7 +468,7 @@ namespace scythe {
         perm_vec = Matrix<uint, PO4, Concrete>(1, 1);  // all 0s
         return (T) 0;
       }
-      
+
       L = U = Matrix<T, PO2, Concrete>(A.rows(), A.cols(), false);
       perm_vec = Matrix<uint, PO3, Concrete> (A.rows() - 1, 1, false);
 
@@ -483,7 +483,7 @@ namespace scythe {
           if (std::fabs(A(pivot,k)) < std::fabs(A(i,k)))
             pivot = i;
         }
-        
+
         SCYTHE_CHECK_20(A(pivot,k) == (T) 0, scythe_type_error,
             "Matrix is singular");
 
@@ -558,8 +558,8 @@ namespace scythe {
   template <matrix_order PO1, matrix_style PS1, typename T,
             matrix_order PO2, matrix_order PO3, matrix_order PO4>
   void
-  lu_decomp(Matrix<T,PO1,PS1> A, Matrix<T,PO2,Concrete>& L, 
-            Matrix<T,PO3,Concrete>& U, 
+  lu_decomp(Matrix<T,PO1,PS1> A, Matrix<T,PO2,Concrete>& L,
+            Matrix<T,PO3,Concrete>& U,
             Matrix<unsigned int, PO4, Concrete>& perm_vec)
   {
     SCYTHE_CHECK_10(A.isNull(), scythe_null_error,
@@ -611,7 +611,7 @@ namespace scythe {
   Matrix<T, RO, RS>
   lu_solve (const Matrix<T,PO1,PS1>& A, const Matrix<T,PO2,PS2>& b,
             const Matrix<T,PO3,PS3>& L, const Matrix<T,PO4,PS4>& U,
-            const Matrix<unsigned int, PO5, PS5> &perm_vec) 
+            const Matrix<unsigned int, PO5, PS5> &perm_vec)
   {
     SCYTHE_CHECK_10(A.isNull(), scythe_null_error,
         "A is NULL")
@@ -631,15 +631,15 @@ namespace scythe {
 
     T *y = new T[A.rows()];
     T *x = new T[A.rows()];
-    
+
     Matrix<T,RO,Concrete> bb = row_interchange(b, perm_vec);
     solve(L, U, bb, x, y);
 
     Matrix<T,RO,RS> result(A.rows(), 1, x);
-     
+
     delete[]x;
     delete[]y;
-   
+
     return result;
   }
 
@@ -651,13 +651,13 @@ namespace scythe {
   Matrix<T, PO1, Concrete>
   lu_solve (const Matrix<T,PO1,PS1>& A, const Matrix<T,PO2,PS2>& b,
             const Matrix<T,PO3,PS3>& L, const Matrix<T,PO4,PS4>& U,
-            const Matrix<unsigned int, PO5, PS5> &perm_vec) 
+            const Matrix<unsigned int, PO5, PS5> &perm_vec)
   {
     return lu_solve<PO1,Concrete>(A, b, L, U, perm_vec);
   }
 
     /*! \brief Solve \f$Ax=b\f$ for x via forward and backward
-     * substitution, using LU decomposition 
+     * substitution, using LU decomposition
      *
      * This function solves the system of equations \f$Ax = b\f$ via
      * forward and backward substitution and LU decomposition. \a A
@@ -666,7 +666,7 @@ namespace scythe {
      * \param A A non-singular square Matrix to decompose.
      * \param b A column vector with as many rows as \a A.
      *
-     * \see lu_solve (const Matrix<T,PO1,PS1>&, const Matrix<T,PO2,PS2>&, const Matrix<T,PO3,PS3>&, const Matrix<T,PO4,PS4>&, const Matrix<unsigned int, PO5, PS5>&) 
+     * \see lu_solve (const Matrix<T,PO1,PS1>&, const Matrix<T,PO2,PS2>&, const Matrix<T,PO3,PS3>&, const Matrix<T,PO4,PS4>&, const Matrix<unsigned int, PO5, PS5>&)
      * \see lu_decomp(Matrix<T,PO1,PS1>, Matrix<T,PO2,Concrete>&, Matrix<T,PO3,Concrete>&, Matrix<unsigned int, PO4, Concrete>&)
    * \see chol_solve(const Matrix<T,PO1,PS1> &, const Matrix<T,PO2,PS2> &)
    * \see chol_solve(const Matrix<T,PO1,PS1> &, const Matrix<T,PO2,PS2> &, const Matrix<T,PO3,PS3> &)
@@ -682,7 +682,7 @@ namespace scythe {
   Matrix<T,RO,RS>
   lu_solve (Matrix<T,PO1,PS1> A, const Matrix<T,PO2,PS2>& b)
   {
-    // step 1 compute the LU factorization 
+    // step 1 compute the LU factorization
     Matrix<T, RO, Concrete> L, U;
     Matrix<uint, RO, Concrete> perm_vec;
     lu_decomp_alg(A, L, U, perm_vec);
@@ -696,12 +696,12 @@ namespace scythe {
   lu_solve (Matrix<T,PO1,PS1> A, const Matrix<T,PO2,PS2>& b)
   {
     // Slight code rep here, but very few lines
-   
-    // step 1 compute the LU factorization 
+
+    // step 1 compute the LU factorization
     Matrix<T, PO1, Concrete> L, U;
     Matrix<uint, PO1, Concrete> perm_vec;
     lu_decomp_alg(A, L, U, perm_vec);
-    
+
     return lu_solve<PO1,Concrete>(A, b, L, U, perm_vec);
   }
 
@@ -734,7 +734,7 @@ namespace scythe {
            matrix_order PO3, matrix_style PS3,
            matrix_order PO4, matrix_style PS4>
   Matrix<T,RO,RS>
-  inv (const Matrix<T,PO1,PS1>& A, 
+  inv (const Matrix<T,PO1,PS1>& A,
        const Matrix<T,PO2,PS2>& L, const Matrix<T,PO3,PS3>& U,
        const Matrix<unsigned int,PO4,PS4>& perm_vec)
   {
@@ -746,7 +746,7 @@ namespace scythe {
                     A.cols() != L.cols() || A.cols() != U.cols(),
                     scythe_conformation_error,
                     "A, L, and U do not conform");
-    SCYTHE_CHECK_10(perm_vec.rows() + 1 != A.rows() 
+    SCYTHE_CHECK_10(perm_vec.rows() + 1 != A.rows()
         && !(A.isScalar() && perm_vec.isScalar()),
         scythe_conformation_error,
         "perm_vec does not have exactly one less row than A");
@@ -759,7 +759,7 @@ namespace scythe {
     T *x = new T[A.rows()];
     Matrix<T, RO, Concrete> b(A.rows(), 1); // full of zeros
     Matrix<T,RO,Concrete> bb;
-    
+
     for (uint k = 0; k < A.rows(); ++k) {
       b[k] = (T) 1;
       bb = row_interchange(b, perm_vec);
@@ -783,7 +783,7 @@ namespace scythe {
            matrix_order PO3, matrix_style PS3,
            matrix_order PO4, matrix_style PS4>
   Matrix<T,PO1,Concrete>
-  inv (const Matrix<T,PO1,PS1>& A, 
+  inv (const Matrix<T,PO1,PS1>& A,
        const Matrix<T,PO2,PS2>& L, const Matrix<T,PO3,PS3>& U,
        const Matrix<unsigned int,PO4,PS4>& perm_vec)
   {
@@ -816,8 +816,8 @@ namespace scythe {
     // Make a copy of A for the decomposition (do it with an explicit
     // copy to a concrete case A is a view)
     Matrix<T,RO,Concrete> AA = A;
-    
-    // step 1 compute the LU factorization 
+
+    // step 1 compute the LU factorization
     Matrix<T, RO, Concrete> L, U;
     Matrix<uint, RO, Concrete> perm_vec;
     lu_decomp_alg(AA, L, U, perm_vec);
@@ -853,12 +853,12 @@ namespace scythe {
             matrix_order PO1, matrix_style PS1,
             matrix_order PO2, matrix_style PS2>
   Matrix<T,RO,RS>
-  row_interchange (Matrix<T,PO1,PS1> A, 
+  row_interchange (Matrix<T,PO1,PS1> A,
                    const Matrix<unsigned int,PO2,PS2>& p)
   {
     SCYTHE_CHECK_10(! p.isColVector(), scythe_dimension_error,
         "p not a column vector");
-    SCYTHE_CHECK_10(p.rows() + 1 != A.rows() && ! p.isScalar(), 
+    SCYTHE_CHECK_10(p.rows() + 1 != A.rows() && ! p.isScalar(),
         scythe_conformation_error, "p must have one less row than A");
 
     for (uint i = 0; i < A.rows() - 1; ++i) {
@@ -866,14 +866,14 @@ namespace scythe {
       Matrix<T,PO1,View> vec2 = A(p[i], _);
       std::swap_ranges(vec1.begin_f(), vec1.end_f(), vec2.begin_f());
     }
-    
+
     return A;
   }
-  
+
   template <typename T, matrix_order PO1, matrix_style PS1,
             matrix_order PO2, matrix_style PS2>
   Matrix<T,PO1,Concrete>
-  row_interchange (const Matrix<T,PO1,PS1>& A, 
+  row_interchange (const Matrix<T,PO1,PS1>& A,
                    const Matrix<unsigned int,PO2,PS2>& p)
   {
     return row_interchange<PO1,Concrete>(A, p);
@@ -899,12 +899,12 @@ namespace scythe {
         "Matrix is not square")
     SCYTHE_CHECK_10(A.isNull(), scythe_null_error,
         "Matrix is NULL")
-    
+
     // Make a copy of A for the decomposition (do it here instead of
     // at parameter pass in case A is a view)
     Matrix<T,PO,Concrete> AA = A;
-    
-    // step 1 compute the LU factorization 
+
+    // step 1 compute the LU factorization
     Matrix<T, PO, Concrete> L, U;
     Matrix<uint, PO, Concrete> perm_vec;
     T sign = lu_decomp_alg(AA, L, U, perm_vec);
@@ -1024,8 +1024,8 @@ namespace scythe {
 
   template <matrix_order PO2, matrix_order PO3, matrix_order PO4>
   inline double
-  lu_decomp_alg(Matrix<>& A, Matrix<double,PO2,Concrete>& L, 
-                Matrix<double,PO3,Concrete>& U, 
+  lu_decomp_alg(Matrix<>& A, Matrix<double,PO2,Concrete>& L,
+                Matrix<double,PO3,Concrete>& U,
                 Matrix<unsigned int, PO4, Concrete>& perm_vec)
   {
     SCYTHE_DEBUG_MSG("Using lapack/blas for lu_decomp_alg");
@@ -1039,7 +1039,7 @@ namespace scythe {
       perm_vec = Matrix<uint, PO4, Concrete>(1, 1);  // all 0s
       return 0.;
     }
-      
+
     L = U = Matrix<double, PO2, Concrete>(A.rows(), A.cols(), false);
     perm_vec = Matrix<uint, PO3, Concrete> (A.rows(), 1, false);
 
@@ -1053,7 +1053,7 @@ namespace scythe {
     lapack::dgetrf_(&rows, &rows, Aarray, &rows, ipiv, &err);
 
     SCYTHE_CHECK_10(err > 0, scythe_type_error, "Matrix is singular");
-    SCYTHE_CHECK_10(err < 0, scythe_lapack_internal_error, 
+    SCYTHE_CHECK_10(err < 0, scythe_lapack_internal_error,
         "The " << err << "th value of the matrix had an illegal value");
 
     // Now fill in the L and U matrices.
@@ -1108,7 +1108,7 @@ namespace scythe {
 
   /*! \brief QR decomposition of a matrix.
    *
-   * This function performs QR decomposition.  That is, given a 
+   * This function performs QR decomposition.  That is, given a
    * \f$m \times n \f$ matrix \a A, qr_decomp computes the QR factorization
    * of \a A with column pivoting, such that \f$A \cdot P = Q \cdot
    * R\f$.  The resulting QRdecomp object contains three matrices, \a
@@ -1218,20 +1218,20 @@ namespace scythe {
    * \see chol_solve(const Matrix<T,PO1,PS1> &, const Matrix<T,PO2,PS2> &)
    * \see chol_solve(const Matrix<T,PO1,PS1> &, const Matrix<T,PO2,PS2> &, const Matrix<T,PO3,PS3> &)
    *
-   * \throw scythe_null_error (Level 1) 
+   * \throw scythe_null_error (Level 1)
    * \throw scythe_conformation_error (Level 1)
    * \throw scythe_type_error (Level 1)
    * \throw scythe_lapack_internal_error (Level 1)
    */
-  inline Matrix<> 
+  inline Matrix<>
   qr_solve(const Matrix<>& A, const Matrix<>& b, const QRdecomp& QR)
-  { 
+  {
     SCYTHE_DEBUG_MSG("Using lapack/blas for qr_solve");
     SCYTHE_CHECK_10(A.isNull(), scythe_null_error, "A is NULL")
     SCYTHE_CHECK_10(A.rows() != b.rows(), scythe_conformation_error,
           "A and b do not conform");
     SCYTHE_CHECK_10(A.rows() != QR.QR.rows() || A.cols() != QR.QR.cols(),
-        scythe_conformation_error, "A and QR do not conform"); 
+        scythe_conformation_error, "A and QR do not conform");
     int taudim = (int) (A.rows() < A.cols() ? A.rows() : A.cols());
     SCYTHE_CHECK_10(QR.tau.size() != taudim, scythe_conformation_error,
         "A and tau do not conform");
@@ -1306,7 +1306,7 @@ namespace scythe {
    * \see chol_solve(const Matrix<T,PO1,PS1> &, const Matrix<T,PO2,PS2> &)
    * \see chol_solve(const Matrix<T,PO1,PS1> &, const Matrix<T,PO2,PS2> &, const Matrix<T,PO3,PS3> &)
    *
-   * \throw scythe_null_error (Level 1) 
+   * \throw scythe_null_error (Level 1)
    * \throw scythe_conformation_error (Level 1)
    * \throw scythe_type_error (Level 1)
    * \throw scythe_lapack_internal_error (Level 1)
@@ -1320,7 +1320,7 @@ namespace scythe {
         "A and b do not conform");
 
     /* Do decomposition */
-   
+
     // Set up working variables
     Matrix<> QR = A;
     double* QRarray = QR.getArray(); // input/output array pointer
@@ -1356,7 +1356,7 @@ namespace scythe {
     pivot -= 1;
 
     /* Now solve the system */
-    
+
     // working vars
     int nrhs = (int) b.cols();
     Matrix<> bb = b;
@@ -1443,7 +1443,7 @@ namespace scythe {
         "A is NULL")
     SCYTHE_CHECK_10 (! A.isSquare(), scythe_dimension_error,
         "A is not square");
-    SCYTHE_CHECK_10(A.rows() != M.cols() || A.cols() != M.rows(), 
+    SCYTHE_CHECK_10(A.rows() != M.cols() || A.cols() != M.rows(),
         scythe_conformation_error, "A and M do not conform");
 
     // We have to do an explicit copy within the func to match the
@@ -1491,14 +1491,14 @@ namespace scythe {
     lapack::dgetrf_(&rows, &rows, Aarray, &rows, ipiv, &err);
 
     SCYTHE_CHECK_10(err > 0, scythe_type_error, "Matrix is singular");
-    SCYTHE_CHECK_10(err < 0, scythe_invalid_arg, 
+    SCYTHE_CHECK_10(err < 0, scythe_invalid_arg,
         "The " << err << "th value of the matrix had an illegal value");
 
     // Inversion step; first do a workspace query, then the actual
     // inversion
     double work_query = 0;
     int work_size = -1;
-    lapack::dgetri_(&rows, Aarray, &rows, ipiv, &work_query, 
+    lapack::dgetri_(&rows, Aarray, &rows, ipiv, &work_query,
                     &work_size, &err);
     double* workspace = new double[(work_size = (int) work_query)];
     lapack::dgetri_(&rows, Aarray, &rows, ipiv, workspace, &work_size,
@@ -1507,7 +1507,7 @@ namespace scythe {
     delete[] workspace;
 
     SCYTHE_CHECK_10(err > 0, scythe_type_error, "Matrix is singular");
-    SCYTHE_CHECK_10(err < 0, scythe_invalid_arg, 
+    SCYTHE_CHECK_10(err < 0, scythe_invalid_arg,
         "Internal error in LAPACK routine dgetri");
 
     return AA;
@@ -1527,7 +1527,7 @@ namespace scythe {
    *
    * \see svd(const Matrix<>& A, int nu, int nv);
    */
-   
+
   struct SVD {
     Matrix<> d;  // singular values
     Matrix<> U;  // left singular vectors
@@ -1561,7 +1561,7 @@ namespace scythe {
   * \see SVD
   * \see eigen(const Matrix<>& A, bool vectors)
   */
- 
+
  inline SVD
  svd (const Matrix<>& A, int nu = -1, int nv = -1)
  {
@@ -1620,7 +1620,7 @@ namespace scythe {
        "Internal error in LAPACK routine dgessd");
    SCYTHE_CHECK_10(info > 0, scythe_convergence_error, "Did not converge");
    delete[] work;
-  
+
    if (nu < mn && nu > 0)
      U = U(0, 0, U.rows() - 1, (unsigned int) std::min(m, nu) - 1);
    if (nv < mn && nv > 0)
@@ -1643,7 +1643,7 @@ namespace scythe {
   *
   * \see eigen(const Matrix<>& A, bool vectors)
   */
- 
+
  struct Eigen {
    Matrix<> values;
    Matrix<> vectors;
@@ -1718,7 +1718,7 @@ namespace scythe {
     lwork = -1;
     liwork = -1;
     lapack::dsyevr_(getvecs, "A", "L", &order, Aarray, &order, &dignored,
-        &dignored, &iignored, &iignored, &abstol, &m, eigenvalues, 
+        &dignored, &iignored, &iignored, &abstol, &m, eigenvalues,
         eigenvalues + order, &order, isuppz, &tmp, &lwork, &itmp,
         &liwork, &info);
     SCYTHE_CHECK_10(info != 0, scythe_lapack_internal_error,
@@ -1730,7 +1730,7 @@ namespace scythe {
 
     // do the actual operation
     lapack::dsyevr_(getvecs, "A", "L", &order, Aarray, &order, &dignored,
-        &dignored, &iignored, &iignored, &abstol, &m, eigenvalues, 
+        &dignored, &iignored, &iignored, &abstol, &m, eigenvalues,
         eigenvalues + order, &order, isuppz, work, &lwork, iwork,
         &liwork, &info);
     SCYTHE_CHECK_10(info != 0, scythe_lapack_internal_error,
@@ -1751,7 +1751,7 @@ namespace scythe {
     return resobj;
   }
 
- 
+
   struct GeneralEigen {
     Matrix<std::complex<double> > values;
     Matrix<> vectors;
@@ -1769,7 +1769,7 @@ namespace scythe {
     // Get a point to the internal array and set up some vars
     double* Aarray = AA.getArray(); // internal array points
     int order = (int) AA.rows();    // input matrix is order x order
-    
+
     GeneralEigen result;
 
     int info, lwork;

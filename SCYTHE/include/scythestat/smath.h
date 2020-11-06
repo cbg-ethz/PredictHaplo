@@ -18,7 +18,7 @@
  * \file smath.h
  * \brief Definitions for functions that perform common mathematical
  * operations on every element of a Matrix.
- * 
+ *
  * \note As is the case throughout the library, we provide both
  * general and default template definitions of the Matrix-returning
  * functions in this file, explicitly providing documentation for only
@@ -153,8 +153,8 @@ namespace scythe {
 
 
   /* calc the inverse cosine of each element of a Matrix */
-  
- /*! 
+
+ /*!
 	* \brief Calculate the inverse cosine of each element of a Matrix
 	*
 	* This function calculates the inverse cosine of each element in a Matrix
@@ -176,9 +176,9 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(acos, ::acos)
-  
+
   /* calc the inverse hyperbolic cosine of each element of a Matrix */
-   /*! 
+   /*!
 	* \brief Calculate the inverse hyperbolic cosine of each element of a Matrix
 	*
 	* This function calculates the inverse hyperbolic cosine of each element
@@ -203,8 +203,8 @@ namespace scythe {
   SCYTHE_MATH_OP(acosh, ::acosh)
 
   /* calc the inverse sine of each element of a Matrix */
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the inverse sine of each element of a Matrix
 	*
 	* This function calculates the inverse sine of each element
@@ -227,10 +227,10 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(asin, ::asin)
-  
+
   /* calc the inverse hyperbolic sine of each element of a Matrix */
-  
-  /*! 
+
+  /*!
 	* \brief Calculate the inverse hyperbolic sine of each element of a Matrix
 	*
 	* This function calculates the inverse hyperbolic sine of each element
@@ -251,12 +251,12 @@ namespace scythe {
 	* \see atanh()
 	* \see atan2()
 	*/
-	
+
   SCYTHE_MATH_OP(asinh, ::asinh)
-  
+
   /* calc the inverse tangent of each element of a Matrix */
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the inverse tangent of each element of a Matrix
 	*
 	* This function calculates the inverse tangent of each element
@@ -277,11 +277,11 @@ namespace scythe {
 	* \see atanh()
 	* \see atan2()
 	*/
-	
+
   SCYTHE_MATH_OP(atan, ::atan)
-  
+
   /* calc the inverse hyperbolic tangent of each element of a Matrix */
-   /*! 
+   /*!
 	* \brief Calculate the inverse hyperbolic tangent of each element of a Matrix
 	*
 	* This function calculates the inverse hyperbolic tangent of each element
@@ -302,19 +302,19 @@ namespace scythe {
 	* \see atan()
 	* \see atan2()
 	*/
-	
+
   SCYTHE_MATH_OP(atanh, ::atanh)
-  
+
   /* calc the angle whose tangent is y/x  */
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the angle whose tangent is y/x
 	*
-	* This function calculates the angle whose tangent is y/x, given two 
+	* This function calculates the angle whose tangent is y/x, given two
 	* matrices A and B (where y is the ith element of A, and x is the jth element
 	* of matrix B).
 	*
-	* \param A The matrix of y values 
+	* \param A The matrix of y values
 	* \param B The matrix of x values
 	*
 	* \see tan()
@@ -334,7 +334,7 @@ namespace scythe {
   SCYTHE_MATH_OP_2ARG(atan2, ::atan2)
 
   /* calc the cube root of each element of a Matrix */
-   /*! 
+   /*!
 	* \brief Calculate the cube root of each element of a Matrix
 	*
 	* This function calculates the cube root of each element
@@ -346,9 +346,9 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(cbrt, ::cbrt)
-  
+
   /* calc the ceil of each element of a Matrix */
-  /*! 
+  /*!
 	* \brief Calculate the ceiling of each element of a Matrix
 	*
 	* This function calculates the ceiling of each element
@@ -360,11 +360,11 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(ceil, ::ceil)
-  
+
   /* create a matrix containing the absval of the first input and the
    * sign of the second
    */
-    /*! 
+    /*!
 	* \brief Create a matrix containing the absolute value of the first input
 	* and the sign of the second input
 	*
@@ -376,10 +376,10 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP_2ARG(copysign, ::copysign)
-  
+
   /* calc the cosine of each element of a Matrix */
-    
- /*! 
+
+ /*!
 	* \brief Calculate the cosine of each element of a Matrix
 	*
 	* This function calculates the cosine of each element in a Matrix
@@ -401,9 +401,9 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(cos, ::cos)
-  
+
   /* calc the hyperbolic cosine of each element of a Matrix */
-   /*! 
+   /*!
 	* \brief Calculate the hyperbolic cosine of each element of a Matrix
 	*
 	* This function calculates the hyperbolic cosine of each element in a Matrix
@@ -425,9 +425,9 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(cosh, ::cosh)
-  
+
   /* calc the error function of each element of a Matrix */
-   /*! 
+   /*!
 	* \brief Calculate the error function of each element of a Matrix
 	*
 	* This function calculates the error function of each element in a Matrix
@@ -438,12 +438,12 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(erf, ::erf)
-  
+
   /* calc the complementary error function of each element of a Matrix */
-   /*! 
+   /*!
 	* \brief Calculate the complementary error function of each element of a Matrix
 	*
-	* This function calculates the complemenatry error function of each 
+	* This function calculates the complemenatry error function of each
 	* element in a Matrix
 	*
 	* \param A The matrix whose complementary error functions are of interest.
@@ -452,9 +452,9 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(erfc, ::erfc)
-  
+
   /* calc the vaue e^x of each element of a Matrix */
-   /*! 
+   /*!
 	* \brief Calculate the value e^x for each element of a Matrix
 	*
 	* This function calculates the value e^x for each element of a matrix, where
@@ -466,9 +466,9 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(exp, ::exp)
-  
+
   /* calc the exponent - 1 of each element of a Matrix */
-  /*! 
+  /*!
 	* \brief Calculate the value e^(x-1) for each element of a Matrix
 	*
 	* This function calculates the value e^(x-1) for each element of a matrix, where
@@ -480,9 +480,9 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(expm1, ::expm1)
-  
+
   /* calc the absval of each element of a Matrix */
-   /*! 
+   /*!
 	* \brief Calculate the absolute value of each element of a Matrix
 	*
 	* This function calculates the absolute value of each element in a Matrix
@@ -493,7 +493,7 @@ namespace scythe {
   SCYTHE_MATH_OP(fabs, (T (*) (T))::fabs)
 
   /* calc the floor of each element of a Matrix */
-  /*! 
+  /*!
 	* \brief Calculate the floor of each element of a Matrix
 	*
 	* This function calculates the floor of each element
@@ -505,13 +505,13 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(floor, ::floor)
-  
+
   /* calc the remainder of the division of each matrix element */
-   /*! 
+   /*!
 	* \brief Calculate the remainder of the division of each matrix element
 	*
 	* This function calculates the remainder when the elements of Matrix A are
-	* divided by the elements of Matrix B.  
+	* divided by the elements of Matrix B.
 	*
 	* \param A The matrix to serve as dividend
 	* \param B the matrix to serve as divisor
@@ -522,8 +522,8 @@ namespace scythe {
   /* calc the fractional val of input and return exponents in int
    * matrix reference
    */
-   
-   /*! 
+
+   /*!
 	*/
   template <matrix_order RO, matrix_style RS, typename T,
 	    matrix_order PO1, matrix_style PS1,
@@ -534,9 +534,9 @@ namespace scythe {
     SCYTHE_CHECK_10(A.size() != ex.size(), scythe_conformation_error,
         "The input matrix sizes do not match");
     Matrix<T,PO1,Concrete> res(A.rows(), A.cols());
-    
+
     typename Matrix<T,PO1,PS1>::const_forward_iterator it;
-    typename Matrix<T,PO1,Concrete>::forward_iterator rit 
+    typename Matrix<T,PO1,Concrete>::forward_iterator rit
       = res.begin_f();
     typename Matrix<int,PO2,PS2>::const_forward_iterator it2
       = ex.begin_f();
@@ -547,7 +547,7 @@ namespace scythe {
 
     return res;
   }
-  
+
   template <typename T, matrix_order PO1, matrix_style PS1,
 	    matrix_order PO2, matrix_style PS2>
   Matrix<T,PO1,Concrete>
@@ -557,7 +557,7 @@ namespace scythe {
   }
 
   /* calc the euclidean distance between the two inputs */
-  /*! 
+  /*!
 	* \brief Calculate the euclidean distance between two inputs
 	*
 	* This function calculates the euclidean distance between the elements of Matrix
@@ -571,14 +571,14 @@ namespace scythe {
 
   /*  return (int) logb */
   SCYTHE_MATH_OP(ilogb, ::ilogb)
-  
+
   /* compute the bessel func of the first kind of the order 0 */
-   /*! 
+   /*!
 	* \brief Compute the Bessel function of the first kind of the order 0
 	*
 	* This function computes the Bessel function of the first kind of order 0
 	* for each element in the input matrix, A.
-	* 
+	*
 	* \param A Matrix for which the Bessel function is of interest
 	*
 	* \see j1()
@@ -587,16 +587,16 @@ namespace scythe {
 	* \see y1()
 	* \see yn()
 	*/
-  
+
   SCYTHE_MATH_OP(j0, ::j0)
-  
+
   /* compute the bessel func of the first kind of the order 1 */
-  /*! 
+  /*!
 	* \brief Compute the Bessel function of the first kind of the order 1
 	*
 	* This function computes the Bessel function of the first kind of order 1
 	* for each element in the input matrix, A.
-	* 
+	*
 	* \param A Matrix for which the Bessel function is of interest
 	*
 	* \see j0()
@@ -607,8 +607,8 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(j1, ::j1)
-  
-  /* compute the bessel func of the first kind of the order n 
+
+  /* compute the bessel func of the first kind of the order n
    * TODO: This definition causes the compiler to issue some warnings.
    * Fix
    */
@@ -617,7 +617,7 @@ namespace scythe {
 	*
 	* This function computes the Bessel function of the first kind of order n
 	* for each element in the input matrix, A.
-	* 
+	*
 	* \param n Order of the Bessel function
 	* \param A Matrix for which the Bessel function is of interest
 	*
@@ -636,33 +636,33 @@ namespace scythe {
 	*
 	* This function computes the value of x * 2^ex, where x is the ith element of
 	* the input matrix A, and ex is the desired value of the exponent.
-	* 
+	*
 	* \param A Matrix whose elements are to be multiplied
 	* \param ex Matrix of powers to which 2 will be raised.
 	*/
       SCYTHE_MATH_OP_2ARG(ldexp, ::ldexp)
-  
+
   /*  compute the natural log of the absval of gamma function */
-  
+
    /*!
 	* \brief Compute the natural log of the absolute value of the gamma function
 	*
 	* This function computes the absolute value of the Gamma Function, evaluated at
 	* each element of the input matrix A.
-	* 
+	*
 	* \param A Matrix whose elements will serve as inputs for the Gamma Function
 	*
 	* \see log()
 	*/
 
   SCYTHE_MATH_OP(lgamma, ::lgamma)
-  
+
   /* calc the natural log of each element of a Matrix */
    /*!
 	* \brief Compute the natural log of each element of a Matrix
 	*
 	* This function computes the natural log of each element in a matrix, A.
-	* 
+	*
 	* \param A Matrix whose natural logs are of interest
 	*
 	* \see log10()
@@ -671,13 +671,13 @@ namespace scythe {
 	*/
 
       SCYTHE_MATH_OP(log, (T (*)(T))::log)
-  
+
   /* calc the base-10 log of each element of a Matrix */
    /*!
 	* \brief Compute the log base 10 of each element of a Matrix
 	*
 	* This function computes the log base 10 of each element in a matrix, A.
-	* 
+	*
 	* \param A Matrix whose logs are of interest
 	*
 	* \see log()
@@ -686,28 +686,28 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(log10, ::log10)
-  
+
   /* calc the natural log of 1 + each element of a Matrix */
   /*!
 	* \brief Compute the natural log of 1 + each element of a Matrix
 	*
 	* This function computes the natural log of 1 + each element of a Matrix.
-	* 
+	*
 	* \param A Matrix whose logs are of interest
 	*
 	* \see log()
 	* \see log10()
 	* \see logb()
 	*/
-  
+
   SCYTHE_MATH_OP(log1p, ::log1p)
-  
+
   /* calc the logb of each element of a Matrix */
   /*!
 	* \brief Compute the logb each element of a Matrix
 	*
 	* This function computes the log base b of each element of a Matrix.
-	* 
+	*
 	* \param A Matrix whose logs are of interest
 	*
 	* \see log()
@@ -716,7 +716,7 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(logb, ::logb)
-  
+
   /* x = frac + i, return matrix of frac and place i in 2nd matrix
    */
   template <matrix_order RO, matrix_style RS, typename T,
@@ -728,9 +728,9 @@ namespace scythe {
     SCYTHE_CHECK_10(A.size() != ipart.size(), scythe_conformation_error,
         "The input matrix sizes do not match");
     Matrix<T,PO1,Concrete> res(A.rows(), A.cols());
-    
+
     typename Matrix<T,PO1,PS1>::const_forward_iterator it;
-    typename Matrix<T,PO1,Concrete>::forward_iterator rit 
+    typename Matrix<T,PO1,Concrete>::forward_iterator rit
       = res.begin_f();
     typename Matrix<double,PO2,PS2>::const_forward_iterator it2
       = ipart.begin_f();
@@ -741,7 +741,7 @@ namespace scythe {
 
     return res;
   }
-  
+
   template <typename T, matrix_order PO1, matrix_style PS1,
 	    matrix_order PO2, matrix_style PS2>
   Matrix<T,PO1,Concrete>
@@ -751,13 +751,13 @@ namespace scythe {
   }
 
   /* calc x^ex of each element of a Matrix */
-  
+
    /*!
 	* \brief Compute x^ex for each element of a matrix
 	*
-	* This function computes x^ex, where x is the ith element of the matrix A, 
+	* This function computes x^ex, where x is the ith element of the matrix A,
 	* and ex is the desired exponent.
-	* 
+	*
 	* \param A Matrix to be exponentiated
 	* \param ex Desired exponent
 	*/
@@ -767,13 +767,13 @@ namespace scythe {
   SCYTHE_MATH_OP_2ARG(remainder, ::remainder)
 
   /* return x rounded to nearest int */
-  
+
   /*!
 	* \brief Return x rounded to the nearest integer
 	*
-	* This function returns x, where x is the ith element of the Matrix A, 
+	* This function returns x, where x is the ith element of the Matrix A,
 	* rounded to the nearest integer.
-	* 
+	*
 	* \param A Matrix whose elements are to be rounded
 	*/
 
@@ -783,8 +783,8 @@ namespace scythe {
   SCYTHE_MATH_OP_2ARG(scalbn, ::scalbn)
 
   /*  calc the sine of x */
-  
-  /*! 
+
+  /*!
 	* \brief Calculate the sine of each element of a Matrix
 	*
 	* This function calculates the sine of each element in a Matrix
@@ -808,7 +808,7 @@ namespace scythe {
   SCYTHE_MATH_OP(sin, ::sin)
 
   /* calc the hyperbolic sine of x */
-   /*! 
+   /*!
 	* \brief Calculate the hyperbolic sine of each element of a Matrix
 	*
 	* This function calculates the hyperbolic sine of each element in a Matrix
@@ -830,9 +830,9 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP(sinh, ::sinh)
-  
+
   /* calc the sqrt of x */
-  /*! 
+  /*!
 	* \brief Calculate the square root of each element in a matrix
 	*
 	* This function calculates the square root of each element in a Matrix
@@ -842,12 +842,12 @@ namespace scythe {
 	* \see cbrt()
 
 	*/
-	
+
   SCYTHE_MATH_OP(sqrt,  (T (*)(T))::sqrt)
 
   /* calc the tangent of x */
-  
-  /*! 
+
+  /*!
 	* \brief Calculate the tangent of each element of a Matrix
 	*
 	* This function calculates the tangent of each element in a Matrix
@@ -871,7 +871,7 @@ namespace scythe {
   SCYTHE_MATH_OP(tan, ::tan)
 
   /* calc the hyperbolic tangent of x */
-  /*! 
+  /*!
 	* \brief Calculate the hyperbolic tangent of each element of a Matrix
 	*
 	* This function calculates the hyperbolic tangent of each element in a Matrix
@@ -895,12 +895,12 @@ namespace scythe {
   SCYTHE_MATH_OP(tanh, ::tanh)
 
   /* bessel function of the second kind of order 0*/
-   /*! 
+   /*!
 	* \brief Compute the Bessel function of the second kind of order 0
 	*
 	* This function computes the Bessel function of the second kind of order 0
 	* for each element in the input matrix, A.
-	* 
+	*
 	* \param A Matrix for which the Bessel function is of interest
 	*
 	* \see j0()
@@ -913,12 +913,12 @@ namespace scythe {
   SCYTHE_MATH_OP(y0, ::y0)
 
   /* bessel function of the second kind of order 1*/
-   /*! 
+   /*!
 	* \brief Compute the Bessel function of the second kind of order 1
 	*
 	* This function computes the Bessel function of the second kind of order 1
 	* for each element in the input matrix, A.
-	* 
+	*
 	* \param A Matrix for which the Bessel function is of interest
 	*
 	* \see j0()
@@ -939,7 +939,7 @@ namespace scythe {
 	*
 	* This function computes the Bessel function of the second kind of order n
 	* for each element in the input matrix, A.
-	* 
+	*
 	* \param n Order of the Bessel function
 	* \param A Matrix for which the Bessel function is of interest
 	*
@@ -951,7 +951,7 @@ namespace scythe {
 	*/
 
   SCYTHE_MATH_OP_2ARG(yn, ::yn)
-  
+
 } // end namespace scythe
 
 #endif /* SCYTHE_MATH_H */

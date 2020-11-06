@@ -1,4 +1,4 @@
-/* 
+/*
  * Scythe Statistical Library Copyright (C) 2000-2002 Andrew D. Martin
  * and Kevin M. Quinn; 2002-present Andrew D. Martin, Kevin M. Quinn,
  * and Daniel Pemstein.  All Rights Reserved.
@@ -13,7 +13,7 @@
  *  scythestat/error.h
  */
  
-/*! \file error.h 
+/*! \file error.h
  *
  * \brief Definitions of Scythe exception classes.
  *
@@ -136,19 +136,19 @@
 #define SCYTHE_CHECK_30(CHECK, EXCEP, MSG)
 #endif
 
-#if SCYTHE_DEBUG > 0 
+#if SCYTHE_DEBUG > 0
 #define SCYTHE_THROW_10(EXCEP,MSG) SCYTHE_THROW(EXCEP,MSG)
 #else
 #define SCYTHE_THROW_10(EXCEP,MSG)
 #endif
 
-#if SCYTHE_DEBUG > 1 
+#if SCYTHE_DEBUG > 1
 #define SCYTHE_THROW_20(EXCEP,MSG) SCYTHE_THROW(EXCEP,MSG)
 #else
 #define SCYTHE_THROW_20(EXCEP,MSG)
 #endif
 
-#if SCYTHE_DEBUG > 2 
+#if SCYTHE_DEBUG > 2
 #define SCYTHE_THROW_30(EXCEP,MSG) SCYTHE_THROW(EXCEP,MSG)
 #else
 #define SCYTHE_THROW_30(EXCEP,MSG)
@@ -303,7 +303,7 @@ namespace scythe
 
   /**** Exception class types, added as needed ****/
 
-  /*! 
+  /*!
    * \brief Memory allocation error.
    *
    *  Library members throw this exception in response to insufficient
@@ -324,7 +324,7 @@ namespace scythe
     }
   };
 
-  /*! 
+  /*!
    * \brief Invalid function argument.
    *
    * Library members throw this exception when callers pass incorrect
@@ -345,7 +345,7 @@ namespace scythe
     }
   };
 
-  /*! 
+  /*!
    * \brief File i/o error.
    *
    * Library members throw this exception when errors occur during
@@ -360,7 +360,7 @@ namespace scythe
                        const unsigned int &line,
                        const std::string & message = "",
                        const bool & halt = false) throw ()
-      : scythe_exception ("SCYTHE FILE ERROR", file, function, line, 
+      : scythe_exception ("SCYTHE FILE ERROR", file, function, line,
           message, halt)
     {
     }
@@ -380,7 +380,7 @@ namespace scythe
                                const unsigned int &line,
                                const std::string & message = "",
                                const bool & halt = false) throw ()
-      : scythe_exception ("SCYTHE CONFORMATION ERROR", file, function, 
+      : scythe_exception ("SCYTHE CONFORMATION ERROR", file, function,
           line, message, halt)
     {
     }
@@ -538,7 +538,7 @@ namespace scythe
     {
     }
   };
-  
+
   /*! \brief Random number seed error.
    *
    * Library members throw this exception when a random number
@@ -587,7 +587,7 @@ namespace scythe
    *
    * Library members throw this exception when an underlying LAPACK or
    * BLAS routine indicates that an internal error has occurred.
-   * 
+   *
    */
   class scythe_lapack_internal_error:public scythe_exception
 	{
@@ -597,7 +597,7 @@ namespace scythe
 					const unsigned int& line,
 					const std::string& message = "",
 					const bool& halt = false) throw ()
-				:	scythe_exception("SCYTHE LAPACK/BLAS INTERNAL  ERROR", file, 
+				:	scythe_exception("SCYTHE LAPACK/BLAS INTERNAL  ERROR", file,
             function, line, message, halt)
 			{}
 	};
@@ -606,7 +606,7 @@ namespace scythe
    *
    * This error should not occur.  If it occurs in your code, please
    * contact the Scythe developers to report the problem.
-   * 
+   *
    */
   class scythe_unexpected_default_error:public scythe_exception
 	{
@@ -616,7 +616,7 @@ namespace scythe
 					const unsigned int& line,
 					const std::string& message = "",
 					const bool& halt = false) throw ()
-				:	scythe_exception("SCYTHE UNEXPECTED DEFAULT ERROR", file, 
+				:	scythe_exception("SCYTHE UNEXPECTED DEFAULT ERROR", file,
             function, line, message, halt)
       {}
 	};

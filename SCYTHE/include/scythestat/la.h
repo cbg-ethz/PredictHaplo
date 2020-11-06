@@ -1,4 +1,4 @@
-/* 
+/*
  * Scythe Statistical Library Copyright (C) 2000-2002 Andrew D. Martin
  * and Kevin M. Quinn; 2002-present Andrew D. Martin, Kevin M. Quinn,
  * and Daniel Pemstein.  All Rights Reserved.
@@ -98,8 +98,8 @@ namespace scythe {
   }
 
   /* Ones matrix generation */
-  
-  /*! 
+
+  /*!
 	 * \brief Create a matrix of ones.
 	 *
 	 * This function creates a matrix of ones, with the given dimensions
@@ -151,7 +151,7 @@ namespace scythe {
         }
     };
   }
-  
+
   /*!\brief Create a \a k by \a k identity Matrix.
    *
    * This function creates a \a k by \a k Matrix with 1s along the
@@ -168,7 +168,7 @@ namespace scythe {
    * \see ones(unsigned int rows, unsigned int cols)
    *
    * \throw scythe_alloc_error (Level 1)
-   * 
+   *
    */
   template <typename T, matrix_order O, matrix_style S>
   Matrix<T,O,S>
@@ -209,11 +209,11 @@ namespace scythe {
       T operator() () { T ret = cur_; cur_ += inc_; return ret; }
     };
   }
-  
- /*! 
+
+ /*!
 	* \brief Create a \a rows x 1 vector-additive sequence Matrix.
 	*
-	* This function creates a \a rows x 1 Matrix \f$v\f$, where 
+	* This function creates a \a rows x 1 Matrix \f$v\f$, where
   * \f$v_i = \mbox{start} + i \cdot \mbox{incr}\f$.
   *
   * This function is defined by a series of templates.  This template
@@ -262,8 +262,8 @@ namespace scythe {
   }
 
   /* Uses the STL sort to sort a Matrix in ascending row-major order */
-  
-  /*! 
+
+  /*!
 	 * \brief Sort a Matrix.
 	 *
    * This function returns a copy of \a M, sorted in ascending order.
@@ -273,7 +273,7 @@ namespace scythe {
 	 * \param M The Matrix to sort.
    *
    * \see sortc
-   * 
+   *
    * \throw scythe_alloc_error (Level 1)
 	 */
   template <matrix_order SORT_ORDER,
@@ -284,7 +284,7 @@ namespace scythe {
   {
     Matrix<T,RO,Concrete> ret = M;
 
-    std::sort(ret.template begin<SORT_ORDER>(), 
+    std::sort(ret.template begin<SORT_ORDER>(),
               ret.template end<SORT_ORDER>());
 
     SCYTHE_VIEW_RETURN(T, RO, RS, ret)
@@ -311,7 +311,7 @@ namespace scythe {
    * ascending order.
 	 *
 	 * \param M The Matrix to sort.
-   * 
+   *
    * \see sort
    *
    * \throw scythe_alloc_error (Level 1)
@@ -341,8 +341,8 @@ namespace scythe {
   }
 
   /* Column bind two matrices */
-  
-  /*! 
+
+  /*!
 	 * \brief Column bind two matrices.
 	 *
 	 * This function column binds two matrices, \a A and \a B.
@@ -350,8 +350,8 @@ namespace scythe {
 	 * \param A The left-hand Matrix.
 	 * \param B The right-hand Matrix.
 	 *
-	 * \see rbind(const Matrix<T,PO1,PS1>& A, 
-   *            const Matrix<T,PO2,PS2>& B) 
+	 * \see rbind(const Matrix<T,PO1,PS1>& A,
+   *            const Matrix<T,PO2,PS2>& B)
    *
    * \throw scythe_conformation_error (Level 1)
    * \throw scythe_alloc_error (Level 1)
@@ -368,8 +368,8 @@ namespace scythe {
 
     Matrix<T,RO,Concrete> ret(A.rows(), A.cols() + B.cols(), false);
     std::copy(B.template begin_f<Col>(), B.template end_f<Col>(),
-              std::copy(A.template begin_f<Col>(), 
-                        A.template end_f<Col>(), 
+              std::copy(A.template begin_f<Col>(),
+                        A.template end_f<Col>(),
                         ret.template begin_f<Col>()));
     SCYTHE_VIEW_RETURN(T, RO, RS, ret)
   }
@@ -384,8 +384,8 @@ namespace scythe {
   }
 
   /* Row bind two matrices */
-  
-  /*! 
+
+  /*!
 	 * \brief Row bind two matrices.
 	 *
 	 * This function row binds two matrices, \a A and \a B.
@@ -393,8 +393,8 @@ namespace scythe {
 	 * \param A The upper Matrix.
 	 * \param B The lower Matrix.
 	 *
-	 * \see cbind(const Matrix<T,PO1,PS1>& A, 
-   *            const Matrix<T,PO2,PS2>& B) 
+	 * \see cbind(const Matrix<T,PO1,PS1>& A,
+   *            const Matrix<T,PO2,PS2>& B)
    *
    * \throw scythe_alloc_error (Level 1)
    * \throw scythe_conformation_error (Level 1)
@@ -411,8 +411,8 @@ namespace scythe {
 
     Matrix<T,RO,Concrete> ret(A.rows() + B.rows(), A.cols(), false);
     std::copy(B.template begin_f<Row>(), B.template end_f<Row>(),
-              std::copy(A.template begin_f<Row>(), 
-                        A.template end_f<Row>(), 
+              std::copy(A.template begin_f<Row>(),
+                        A.template end_f<Row>(),
                         ret.template begin_f<Row>()));
     SCYTHE_VIEW_RETURN(T, RO, RS, ret)
   }
@@ -438,15 +438,15 @@ namespace scythe {
       }
     };
   }
-    
-  /*! 
+
+  /*!
 	 * \brief Calculate the rank-order of each element in a Matrix.
 	 *
 	 * This function calculates the rank-order of each element in a
    * Matrix, returning a Matrix in which the \e i'th element
    * indicates the order position of the \e i'th element of \a M.
    * The returned Matrix contains unsigned integers.
-	 * 
+	 *
 	 * \param M A column vector.
    *
    * \throw scythe_alloc_error (Level 1)
@@ -472,18 +472,18 @@ namespace scythe {
   {
     return order<O,Concrete>(M);
   }
-  
+
   /* Selects all the rows of Matrix A for which binary column vector e
    * has an element equal to 1
    */
-   
-  /*! 
+
+  /*!
 	 * \brief Locate rows for which a binary column vector equals 1
-	  
+
    * This function identifies all the rows of a Matrix \a M for which
    * the binary column vector \a e has an element equal to 1,
-   * returning a Matrix 
-	 
+   * returning a Matrix
+
 	 * \param M The Matrix of interest.
 	 * \param e A boolean column vector.
 	 *
@@ -511,14 +511,14 @@ namespace scythe {
       if (e[i]) {
         Matrix<T,RO,View> Mvec = M(i, _);
         // TODO again, need optimized vector iteration
-        std::copy(Mvec.begin_f(), Mvec.end_f(), 
+        std::copy(Mvec.begin_f(), Mvec.end_f(),
             res(cnt++, _).begin_f());
       }
     }
 
     SCYTHE_VIEW_RETURN(T, RO, RS, res)
   }
- 
+
   template <typename T, matrix_order PO1, matrix_style PS1,
             matrix_order PO2, matrix_style PS2>
   Matrix<T,PO1,Concrete>
@@ -528,7 +528,7 @@ namespace scythe {
   }
 
   /* Find unique elements in a matrix and return a sorted row vector */
-  /*! 
+  /*!
 	 * \brief Find unique elements in a Matrix.
 	 *
    * This function identifies all of the unique elements in a Matrix,
@@ -563,12 +563,12 @@ namespace scythe {
   /* NOTE I killed reshape.  It seems redundant with resize. DBP */
 
 
-  /* Make vector out of unique elements of a symmetric Matrix.  
+  /* Make vector out of unique elements of a symmetric Matrix.
    */
-   
-  /*! 
+
+  /*!
 	 * \brief Vectorize a symmetric Matrix.
-	 * 
+	 *
    * This function returns a column vector containing only those
    * elements necessary to reconstruct the symmetric Matrix, \a M.  In
    * practice, this means extracting one triangle of \a M and
@@ -593,7 +593,7 @@ namespace scythe {
     SCYTHE_CHECK_30(! M.isSymmetric(), scythe_dimension_error,
         "Matrix not symmetric");
 
-    Matrix<T,RO,Concrete> 
+    Matrix<T,RO,Concrete>
       res((uint) (0.5 * (M.size() - M.rows())) + M.rows(), 1, false);
     typename Matrix<T,RO,Concrete>::forward_iterator it = res.begin_f();
 
@@ -641,8 +641,8 @@ namespace scythe {
   xpnd (const Matrix<T, PO, PS>& v)
   {
     double size_d = -.5 + .5 * std::sqrt(1. + 8 * v.size());
-    SCYTHE_CHECK_10(std::fmod(size_d, 1.) != 0., 
-        scythe_dimension_error, 
+    SCYTHE_CHECK_10(std::fmod(size_d, 1.) != 0.,
+        scythe_dimension_error,
         "Input vector can't generate square matrix");
 
     uint size = (uint) size_d;
@@ -667,8 +667,8 @@ namespace scythe {
   }
 
   /* Get the diagonal of a Matrix. */
-  
-  /*! 
+
+  /*!
 	 * \brief Return the diagonal of a Matrix.
 	 *
 	 * This function returns the diagonal of a Matrix in a row vector.
@@ -685,7 +685,7 @@ namespace scythe {
   diag (const Matrix<T, PO, PS>& M)
   {
     Matrix<T,RO,Concrete> res(std::min(M.rows(), M.cols()), 1, false);
-    
+
     /* We want to use iterators to maximize speed for both concretes
      * and views, but we always want to tranvers M in order to avoid
      * slowing down concretes.
@@ -697,7 +697,7 @@ namespace scythe {
       incr += M.cols();
 
     typename Matrix<T,PO,PS>::const_iterator pit;
-    typename Matrix<T,RO,Concrete>::forward_iterator rit 
+    typename Matrix<T,RO,Concrete>::forward_iterator rit
       = res.begin_f();
     for (pit = M.begin(); pit < M.end(); pit += incr)
       *rit++ = *pit;
@@ -725,13 +725,13 @@ namespace scythe {
     {
       res = Matrix<T,RO,Concrete>(X.rows(), X.cols(), false);
       if (maj_col<RO,PO1,PO2>())
-        std::transform(X.template begin_f<Col>(), 
+        std::transform(X.template begin_f<Col>(),
                        X.template end_f<Col>(),
                        B.template begin_f<Col>(),
                        res.template begin_f<Col>(),
                        ax_plus_b<T>(constant));
       else
-        std::transform(X.template begin_f<Row>(), 
+        std::transform(X.template begin_f<Row>(),
                        X.template end_f<Row>(),
                        B.template begin_f<Row>(),
                        res.template begin_f<Row>(),
@@ -747,7 +747,7 @@ namespace scythe {
    *
    * Matrices conform when \a A, \a B, and \a C are chosen with
    * dimensions
-   * \f$((m \times n), (1 \times 1), (m \times n))\f$, 
+   * \f$((m \times n), (1 \times 1), (m \times n))\f$,
    * \f$((1 \times 1), (n \times k), (n \times k))\f$, or
    * \f$((m \times n), (n \times k), (m \times k))\f$.
    *
@@ -773,7 +773,7 @@ namespace scythe {
   gaxpy (const Matrix<T,PO1,PS1>& A, const Matrix<T,PO2,PS2>& B,
          const Matrix<T,PO3,PS3>& C)
   {
-    
+
     Matrix<T, RO, Concrete> res;
 
     if (A.isScalar() && B.rows() == C.rows() && B.cols() == C.cols()) {
@@ -792,7 +792,7 @@ namespace scythe {
       /* These are identical to matrix mult, one optimized for
        * row-major and one for col-major.
        */
-      
+
       T tmp;
       if (RO == Col) { // col-major optimized
        for (uint j = 0; j < B.cols(); ++j) {
@@ -942,7 +942,7 @@ namespace scythe {
                B.cols() == C.cols()) {
       res = C; // NOTE: this copy may eat up speed gains, but can't be
                //       avoided.
-      
+
       // Case 3: m x n  *  n x k  +  m x k
       double* Apnt = A.getArray();
       double* Bpnt = B.getArray();

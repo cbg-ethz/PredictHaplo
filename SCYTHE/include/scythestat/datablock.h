@@ -1,5 +1,5 @@
 
-/* 
+/*
  * Scythe Statistical Library Copyright (C) 2000-2002 Andrew D. Martin
  * and Kevin M. Quinn; 2002-present Andrew D. Martin, Kevin M. Quinn,
  * and Daniel Pemstein.  All Rights Reserved.
@@ -57,27 +57,27 @@ namespace scythe {
   }
 
   /*!  \brief Handles Matrix data internals.
-	 * 
+	 *
    * Handles data allocation, reallocation, and deletion of blocks of
    * elements; the actual data Matrix objects point to.  Keeps a
    * reference count.
 	 */
   template <typename T_type>
-  class DataBlock { 
+  class DataBlock {
     public:
       /**** CONSTRUCTORS ****/
-			
+
       /*
        * Create an empty data block.
        */
-			
+
 			DataBlock ()
 				:	data_ (0),
 					size_ (0),
 					refs_ (0)
 			{}
 
-      /* 
+      /*
        * Create a block of a given size.
        */
 			explicit
@@ -148,7 +148,7 @@ namespace scythe {
 
 		protected:
 			/**** (DE)ALLOCATION AND RESIZING ****/
-			
+
 			/* Allocate data given the current block size. */
 			inline void allocate (uint size)
 			{
@@ -159,7 +159,7 @@ namespace scythe {
 					deallocate();
 
 				data_ = new (std::nothrow) T_type[size];
-				
+
 				SCYTHE_CHECK_10(data_ == 0, scythe_alloc_error,
 						"Failure allocating DataBlock of size " << size);
 			}
@@ -224,12 +224,12 @@ namespace scythe {
 	{
 		typedef DataBlock<T_type> T_base;
 		public:
-			
+
 			NullDataBlock ()
 				: DataBlock<T_type> ()
 			{
         // never want to deallocate (or resize) this one
-				T_base::addReference(); 
+				T_base::addReference();
 				SCYTHE_DEBUG_MSG("Constructed NULL datablock");
 			}
 
@@ -239,7 +239,7 @@ namespace scythe {
 	}; // end class NullDataBlock
 
 
-  /*! 
+  /*!
    * \brief Handle to DataBlock objects.
    *
 	 * Matrices inherit from this object.  It provides a handle into
@@ -276,7 +276,7 @@ namespace scythe {
 				block_ = new (std::nothrow) DataBlock<T_type> (size);
 				SCYTHE_CHECK_10 (block_ == 0, scythe_alloc_error,
 						"Could not allocate DataBlock object");
-				
+
 				data_ = block_->data();
 				block_->addReference();
 			}
@@ -301,7 +301,7 @@ namespace scythe {
           pthread_mutex_unlock (&ndbMutex_);
 #endif
 			}
-			
+
 			/**** DESTRUCTOR ****/
 			/* Automates removal of underlying block objects when refcount
 			 * hits nil.
@@ -354,7 +354,7 @@ namespace scythe {
           lock = true;
         }
 #endif
-				/* If we are the only referent to this data block, resize it. 
+				/* If we are the only referent to this data block, resize it.
 				 * Otherwise, shift the reference to point to a newly
 				 * constructed block.
 				 */
@@ -409,7 +409,7 @@ namespace scythe {
 		/**** INSTANCE VARIABLES ****/
 		protected:
 			T_type* data_;  // Pointer to the underlying data (offset)
-		
+
 		private:
 			DataBlock<T_type>* block_;
 			static NullDataBlock<T_type> nullBlock_;
@@ -426,7 +426,7 @@ namespace scythe {
 #ifdef SCYTHE_PTHREAD
   // mutex initialization
   template <typename T>
-  pthread_mutex_t 
+  pthread_mutex_t
   DataBlockReference<T>::ndbMutex_ = PTHREAD_MUTEX_INITIALIZER;
 #endif
 

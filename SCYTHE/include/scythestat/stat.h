@@ -73,12 +73,12 @@ namespace scythe {
   NAME ## c (const Matrix<T,O,S>& A)                                  \
   {                                                                   \
     return NAME ## c<O,Concrete>(A);                                  \
-  }         
+  }
 
 
   /* Calculate the sum of a Matrix */
-  
-  /*! 
+
+  /*!
 	* \brief Calculate the sum of a Matrix
 	*
 	* This function calculates the sum of a matrix by adding each element
@@ -100,12 +100,12 @@ namespace scythe {
   }
 
   /* Calculate the sum of each column in a Matrix */
-   
-  /*! 
+
+  /*!
 	* \brief Calculate the sum of each column in a Matrix
 	*
-	* This function calculates the sum of each column in a matrix by 
-	* consecutively adding elements in a single column, looping through all 
+	* This function calculates the sum of each column in a matrix by
+	* consecutively adding elements in a single column, looping through all
 	* columns, and returning the results.
 	*
 	* \param A The matrix to be summed.
@@ -116,13 +116,13 @@ namespace scythe {
 	*/
 
   SCYTHE_STATMETH_COL(sum)
-  
+
   /* Calculate the product of a Matrix */
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the product of a Matrix
 	*
-	* This function calculates the product of a matrix by beginning with the 
+	* This function calculates the product of a matrix by beginning with the
 	* first element of a matrix, and consecutively multiplying each entry.
 	*
 	* \param A The matrix to be multiplied.
@@ -131,21 +131,21 @@ namespace scythe {
 	* \see sum(const Matrix<T,PO,PS> &A)
 	* \see prodc(const Matrix<T,PO,PS> &A)
 	*/
-	
+
   template <typename T, matrix_order PO, matrix_style PS>
   T
   prod (const Matrix<T,PO,PS> &A)
   {
-    return std::accumulate(A.begin_f(), A.end_f(), (T) 1, 
+    return std::accumulate(A.begin_f(), A.end_f(), (T) 1,
                            std::multiplies<T> ());
   }
 
   /* Calculate the product of each column of a matrix */
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the product of each column of a Matrix
 	*
-	* This function calculates the product of each column of a matrix by 
+	* This function calculates the product of each column of a matrix by
 	* multiplying all elements of a single column, looping through all columns,
 	* and returning the results.
 	*
@@ -155,15 +155,15 @@ namespace scythe {
 	* \see sum(const Matrix<T,PO,PS> &A)
 	* \see prod(const Matrix<T,PO,PS> &A)
 	*/
-	
+
   SCYTHE_STATMETH_COL(prod)
-  
+
   /* Calculate the mean of a Matrix */
-    
-   /*! 
+
+   /*!
 	* \brief Calculate the mean of a Matrix
 	*
-	* This function calculates the mean of a matrix by summing all elements of 
+	* This function calculates the mean of a matrix by summing all elements of
 	* the matrix, and dividing by the total number of elements in the matrix.
 	*
 	* \param A The matrix to be averaged.
@@ -183,12 +183,12 @@ namespace scythe {
   }
 
   /* Calculate the mean of each column of a Matrix */
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the mean of each column of a Matrix
 	*
-	* This function calculates the mean of each column of a matrix by summing 
-	* all elements of a column in the matrix, divding by the total number of 
+	* This function calculates the mean of each column of a matrix by summing
+	* all elements of a column in the matrix, divding by the total number of
 	* elements in the column, and looping over every column in the matrix.
 	*
 	* \param A The matrix to be averaged.
@@ -201,13 +201,13 @@ namespace scythe {
 	*/
 
   SCYTHE_STATMETH_COL(mean)
-  
+
   /* Calculate the median of a matrix.  Uses a sort but I'll implement
    * the randomized alg when I figure out how to generalize it to
    * even-length lists
    */
-   
-   /*! 
+
+   /*!
 	* \brief Calculate the median of a Matrix
 	*
 	* This function calculates the median of a matrix by first sorting the elements
@@ -235,11 +235,11 @@ namespace scythe {
   }
 
   /* Calculate the median of each column of a matrix */
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the median of each column a Matrix
 	*
-	* This function calculates the median of each column of a matrix by first 
+	* This function calculates the median of each column of a matrix by first
 	* sorting the elements and locating the middle in a single column, and then
 	* looping over all columns.
 	*
@@ -253,8 +253,8 @@ namespace scythe {
   SCYTHE_STATMETH_COL(median)
 
   /* Calculate the mode of a matrix */
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the mode of a Matrix
 	*
 	* This function calculates the mode of a matrix by determining which value of
@@ -266,20 +266,20 @@ namespace scythe {
 	* \see mean(const Matrix<T,PO,PS> &A)
 	* \see median(const Matrix<T,PO,PS> &A)
 	*/
-	
+
   template <typename T, matrix_order PO, matrix_style PS>
   T
   mode (const Matrix<T,PO,PS> &A)
   {
     Matrix<T, PO, Concrete> temp(A);
-    
+
     sort(temp.begin(), temp.end());
 
     T last = temp[0];
     uint cnt = 1;
     T cur_max = temp[0];
     uint max_cnt = 1;
-    
+
     for (uint i = 1; i < temp.size(); ++i) {
       if (last == temp[i]) {
         ++cnt;
@@ -296,11 +296,11 @@ namespace scythe {
     return cur_max;
   }
 
-   /*! 
+   /*!
 	* \brief Calculate the mode of the columns of a Matrix
 	*
-	* This function calculates the mode of the columns of a matrix by 
-	* determining which value in a single column of the matrix occurs 
+	* This function calculates the mode of the columns of a matrix by
+	* determining which value in a single column of the matrix occurs
 	* most frequently, and then looping over all columns.
 	*
 	* \param A The matrix whose modes are of interest.
@@ -331,8 +331,8 @@ namespace scythe {
       }
     };
   }
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the variance of a Matrix
 	*
 	* This function calculates the variance of a matrix.
@@ -352,8 +352,8 @@ namespace scythe {
   }
 
   /* Calculate the variances of each column of a Matrix. */
-  
-  /*! 
+
+  /*!
 	* \brief Calculate the variance of each column of a Matrix
 	*
 	* This function calculates the variance of each column of a matrix.
@@ -365,10 +365,10 @@ namespace scythe {
 	* \see sdc(const Matrix<T,PO,PS> &A)
 	* \see meanc(const Matrix<T,PO,PS> &A)
 	*/
-	
+
   SCYTHE_STATMETH_COL(var)
 
- /*! 
+ /*!
 	* \brief Calculate the variance of a Matrix
 	*
 	* This function calculates the variance of a matrix when the mean is
@@ -386,17 +386,17 @@ namespace scythe {
   T
   var (const Matrix<T,PO,PS> &A, T mu)
   {
-    return std::accumulate(A.begin_f(), A.end_f(), (T) 0, 
+    return std::accumulate(A.begin_f(), A.end_f(), (T) 0,
                          var_step<T, uint> (mu, A.size() - 1, 2));
   }
-  
+
   /* Calculate the standard deviation of a Matrix (not std cause of namespace std:: */
-  
-  /*! 
+
+  /*!
 	* \brief Calculate the standard deviation of a Matrix
 	*
-	* This function calculates the standard deviation of a matrix by 
-	* taking the square root of the matrix's variance. 	
+	* This function calculates the standard deviation of a matrix by
+	* taking the square root of the matrix's variance.
 	*
 	* \param A The matrix whose standard deviation is of interest.
 	*
@@ -404,30 +404,30 @@ namespace scythe {
 	* \see sdc(const Matrix<T,PO,PS> &A)
 	* \see variance(const Matrix<T,PO,PS> &A)
 	*/
-	
+
   template <typename T, matrix_order PO, matrix_style PS>
   T
   sd (const Matrix<T,PO,PS> &A)
   {
     return std::sqrt(var(A));
   }
-  
+
   /* Calculate the standard deviation of each column of a Matrix */
-   /*! 
+   /*!
 	* \brief Calculate the standard deviation of each column of a Matrix
 	*
-	* This function calculates the standard deviation of each column of a matrix by 
-	* taking the square root of each column's variance. 	
+	* This function calculates the standard deviation of each column of a matrix by
+	* taking the square root of each column's variance.
 	*
 	* \param A The matrix whose standard deviations are of interest.
 	*
 	* \see sd(const Matrix<T,PO,PS> &A)
 	* \see variancec(const Matrix<T,PO,PS> &A)
 	*/
-	
+
   SCYTHE_STATMETH_COL(sd)
 
-  /*! 
+  /*!
 	* \brief Calculate the standard deviation of a Matrix
 	*
 	* This function calculates the standard deviation of a matrix
@@ -440,7 +440,7 @@ namespace scythe {
 	* \see sdc(const Matrix<T,PO,PS> &A)
 	* \see variance(const Matrix<T,PO,PS> &A)
 	*/
-	
+
   template <typename T, matrix_order PO, matrix_style PS>
   T
   sd (const Matrix<T,PO,PS> &A, T mu)
@@ -450,7 +450,7 @@ namespace scythe {
 
   /* Calculate the skew of a Matrix */
 
-  /*! 
+  /*!
 	 * \brief Calculate the skew of a Matrix
 	 *
 	 * This function calculates the skew of a matrix.
@@ -467,13 +467,13 @@ namespace scythe {
   {
     T mu = mean(A);
     T sde = sd(A, mu);
-    return std::accumulate(A.begin_f(), A.end_f(), (T) 0, 
+    return std::accumulate(A.begin_f(), A.end_f(), (T) 0,
               var_step<T, T> (mu, A.size() * std::pow(sde, 3), 3));
   }
 
   /* Calculate the skew of each column of a Matrix. */
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the skew of each column of a Matrix
 	*
 	* This function calculates the skew of each column of a matrix.
@@ -485,10 +485,10 @@ namespace scythe {
 	*/
 
   SCYTHE_STATMETH_COL(skew)
-  
+
   /* Calculate the kurtosis of a Matrix */
-    
-   /*! 
+
+   /*!
 	* \brief Calculate the kurtosis of a Matrix
 	*
 	* This function calculates the kurtosis of a matrix.
@@ -504,14 +504,14 @@ namespace scythe {
   {
     T mu = mean(A);
     T sde = sd(A, mu);
-    return (std::accumulate(A.begin_f(), A.end_f(), (T) 0, 
+    return (std::accumulate(A.begin_f(), A.end_f(), (T) 0,
               var_step<T, T> (mu, A.size() * std::pow(sde, 4), 4))
             - 3);
   }
-  
+
   /* Calculate the kurtosis of each column of a Matrix. */
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the kurtosis of each column of a Matrix
 	*
 	* This function calculates the kurtosis of each column of a matrix.
@@ -525,7 +525,7 @@ namespace scythe {
   SCYTHE_STATMETH_COL(kurtosis)
 
   /* Calculates the maximum element in a Matrix */
-  /*! 
+  /*!
 	* \brief Calculate the maximum element in a Matrix
 	*
 	* This function identifies the maximum element in a matrix.
@@ -536,7 +536,7 @@ namespace scythe {
 	* \see maxc (const Matrix<T,PO,PS> &A)
 
 	*/
-	
+
   template <typename T, matrix_order PO, matrix_style PS>
   T
   max (const Matrix<T,PO,PS> &A)
@@ -544,7 +544,7 @@ namespace scythe {
     return *(max_element(A.begin_f(), A.end_f()));
   }
 
-   /*! 
+   /*!
 	* \brief Calculate the maximum of each column of a Matrix
 	*
 	* This function identifies the maximum of each column in a matrix.
@@ -554,12 +554,12 @@ namespace scythe {
 	* \see max(const Matrix<T,PO,PS> &A)
 	* \see minc(const Matrix<T,PO,PS> &A)
 	*/
-  
+
   SCYTHE_STATMETH_COL(max)
 
   /* Calculates the minimum element in a Matrix */
-  
-	/*! 
+
+	/*!
 	* \brief Calculate the maximum element in a Matrix
 	*
 	* This function identifies the maximum element in a matrix.
@@ -575,8 +575,8 @@ namespace scythe {
   {
     return *(min_element(A.begin_f(), A.end_f()));
   }
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the minimum of each column of a Matrix
 	*
 	* This function identifies the minimum of each column in a matrix.
@@ -586,11 +586,11 @@ namespace scythe {
 	* \see min(const Matrix<T,PO,PS> &A)
 	* \see maxc(const Matrix<T,PO,PS> &A)
 	*/
-  
+
   SCYTHE_STATMETH_COL(min)
 
-  /* Find the index of the max element */  
-	/*! 
+  /* Find the index of the max element */
+	/*!
 	* \brief Calculate the index of the maximum element in a Matrix
 	*
 	* This function identifies the index of the maximum element in a matrix.
@@ -608,8 +608,8 @@ namespace scythe {
   {
     return (max_element(A.begin_f(), A.end_f())).get_index();
   }
-  
-   /*! 
+
+   /*!
 	* \brief Calculate the index of the maximum for each column of a Matrix
 	*
 	* This function identifies the index of the maximum for each column of a Matrix.
@@ -621,10 +621,10 @@ namespace scythe {
 	*/
 
   SCYTHE_STATMETH_COL(maxind)
-  
+
   /* Find the index of the min element */
-  
-  /*! 
+
+  /*!
 	* \brief Calculate the index of the minimum element in a Matrix
 	*
 	* This function identifies the index of the minimum element in a matrix.
@@ -642,7 +642,7 @@ namespace scythe {
     return (min_element(A.begin_f(), A.end_f())).get_index();
   }
 
-    /*! 
+    /*!
 	* \brief Calculate the index of the minimum for each column of a Matrix
 	*
 	* This function identifies the index of the minimum for each column of a Matrix.

@@ -1,4 +1,4 @@
-/* 
+/*
  * Scythe Statistical Library Copyright (C) 2000-2002 Andrew D. Martin
  * and Kevin M. Quinn; 2002-present Andrew D. Martin, Kevin M. Quinn,
  * and Daniel Pemstein.  All Rights Reserved.
@@ -17,7 +17,7 @@
 /*!
  * \file lapack.h
  * \brief Definitions that provide access to LAPACK/BLAS fortran
- *        routines for internal library functions.  
+ *        routines for internal library functions.
  *
  * This file provides function definitions that help provide
  * LAPACK/BLAS support to Scythe functions.  These definitions are not
@@ -50,7 +50,7 @@ namespace scythe {
       void dgemm_ (char* transa, char* transb, const int* m,
                    const int* n, const int* k, const double* alpha,
                    const double* a, const int* lda, const double* b,
-                   const int* ldb, const double* beta, double* c, 
+                   const int* ldb, const double* beta, double* c,
                    const int* ldc);
 
       /* Matrix cross product A'A */
@@ -62,7 +62,7 @@ namespace scythe {
       /* LU decomposition */
       void dgetrf_ (const int* rows, const int* cols, double* a,
                     const int* lda, int* ipiv, int *info);
-      
+
       /* General inversion (given LU decomposion)*/
       void dgetri_ (const int* n, double* a, const int* lda,
                     const int* ipiv, double* work, const int* lwork,
@@ -76,7 +76,7 @@ namespace scythe {
       void dpotrs_ (const char* uplo, const int* n, const int* nrhs,
                     const double* a, const int* lda, double *b,
                     const int* ldb, int* info);
-      
+
       /* chol_solve from A and b */
       void dposv_ (const char* uplo, const int* n, const int* nrhs,
                    double* a, const int* lda, double* b, const int* ldb,
@@ -91,7 +91,7 @@ namespace scythe {
                   double* a, const int* lda, double* wr, double* wi,
                   double* vl, const int* ldvl, double* vr, const int* ldvr,
                   double* work, const int* lwork, int* info);
-      
+
 
       /* Eigenvalues/vectors for symmetric matrices */
       void dsyevr_ (const char* jobz, const char* range, const char* uplo,

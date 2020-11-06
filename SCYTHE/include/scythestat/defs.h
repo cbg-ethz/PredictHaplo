@@ -1,4 +1,4 @@
-/* 
+/*
  * Scythe Statistical Library
  * Copyright (C) 2000-2002 Andrew D. Martin and Kevin M. Quinn;
  * 2002-present Andrew D. Martin, Kevin M. Quinn, and Daniel
@@ -14,7 +14,7 @@
  * scythestat/defs.h
  */
 
-/*!  \file defs.h 
+/*!  \file defs.h
  * \brief Global Scythe definitions.
  *
  * This file provides a variety of global definitions used throughout
@@ -63,7 +63,7 @@
  * http://scythe.wustl.edu.
  *
  * \section install Installation
- * 
+ *
  * Scythe installs as a header-only C++ library.  After uncompressing,
  * simply follow the instructions in the INSTALL file included with
  * Scythe to install the library.  Alternatively, you may copy the
@@ -78,7 +78,7 @@
  * provides a number of pre-processor flags.  The
  * SCYTHE_COMPILE_DIRECT allows the user to compile Scythe sources
  * directly.  The SCYTHE_VIEW_ASSIGNMENT_FLAG turns on R-style
- * recycling in Matrix::operator=() for view matrices. 
+ * recycling in Matrix::operator=() for view matrices.
  *
  * The SCYTHE_DEBUG controls the amount of error trapping in
  * Scythe.  This level ranges from 0 (virtually no checking) to 3 (all
@@ -94,7 +94,7 @@
  * example, on linux you can enable LAPACK/BLAS support like this:
  *
  * \verbatim $ g++ myprog.cc -DSCYTHE_LAPACK -llapack -lblas -pthread \endverbatim
- * 
+ *
  * \section copy Copyright
  *
  * Scythe Statistical Library Copyright (C) 2000-2002 Andrew D. Martin
@@ -131,7 +131,7 @@
  * get a matrix of any style, but want to work with concretes inside
  * the function, for efficiency.  This macro originally contained the
  * code:
- * 
+ *
  * if (_STYLE_ == View)                                                \
  *   return Matrix<_TYPE_,_ORDER_,View>(_MATRIX_);                     \
  * else                                                                \
@@ -182,7 +182,7 @@
  */
 namespace scythe {
 
-  /*! 
+  /*!
    * \brief Matrix order enumerator.
    *
    * Matrix templates may be either column-major or row-major ordered
@@ -195,7 +195,7 @@ namespace scythe {
    */
   enum matrix_order { Col, Row };
 
-  /*! 
+  /*!
    * \brief Matrix style enumerator.
    *
    * Matrix templates may be either concrete matrices or views and
@@ -214,7 +214,7 @@ namespace scythe {
 
   /*!
    * \brief A convenient marker for vector submatrix access.
-   
+
    * Passing an all_elements object to a two-argument Matrix submatrix
    * method allows the caller to access a full vector submatrix.  We
    * further define an instance of all_elements named "_" in the

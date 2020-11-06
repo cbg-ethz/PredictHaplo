@@ -1,4 +1,4 @@
-/* 
+/*
  * Scythe Statistical Library Copyright (C) 2000-2002 Andrew D. Martin
  * and Kevin M. Quinn; 2002-present Andrew D. Martin, Kevin M. Quinn,
  * and Daniel Pemstein.  All Rights Reserved.
@@ -29,7 +29,7 @@
  * Matrix they iterate over and their own order, which need not match
  * the iterated-over matrix.  Same-order iteration over concrete
  * matrices is extremely fast.  Cross-grain concrete and/or view
- * iteration is slower.  
+ * iteration is slower.
  */
 
 #ifndef SCYTHE_MATRIX_BIDIRECTIONAL_ITERATOR_H
@@ -52,7 +52,7 @@ namespace scythe {
   namespace { // local to this file
 	  typedef unsigned int uint;
   }
-  
+
 	/* forward declaration of the matrix class */
 	template <typename T_type, matrix_order ORDER, matrix_style STYLE>
 	class Matrix;
@@ -70,7 +70,7 @@ namespace scythe {
    * \see const_matrix_random_access_iterator
    * \see matrix_random_access_iterator
    */
-  
+
   template <typename T_type, matrix_order ORDER, matrix_order M_ORDER,
             matrix_style M_STYLE>
   class const_matrix_bidirectional_iterator
@@ -78,7 +78,7 @@ namespace scythe {
   {
 		public:
 			/**** TYPEDEFS ***/
-			typedef const_matrix_bidirectional_iterator<T_type, ORDER, 
+			typedef const_matrix_bidirectional_iterator<T_type, ORDER,
               M_ORDER, M_STYLE> self;
 
 			/* These are a little formal, but useful */
@@ -91,9 +91,9 @@ namespace scythe {
 			typedef typename std::iterator_traits<self>::pointer pointer;
 			typedef typename std::iterator_traits<self>::reference reference;
 
-		
+
 			/**** CONSTRUCTORS ****/
-			
+
 			/* Default constructor */
 			const_matrix_bidirectional_iterator ()
 			{}
@@ -167,7 +167,7 @@ namespace scythe {
       {
         if (M_STYLE == Concrete && ORDER == M_ORDER) {
           pos_ = matrix_->getArray() + matrix_->size();
-        } else { 
+        } else {
           if (ORDER == Col) {
             vbegin_ += trail_inc_ * matrix_->cols();
             vend_ += trail_inc_ * matrix_->cols();
@@ -342,15 +342,15 @@ namespace scythe {
 	template <typename T_type, matrix_order ORDER, matrix_order M_ORDER,
             matrix_style M_STYLE>
 	class matrix_bidirectional_iterator
-		: public const_matrix_bidirectional_iterator<T_type, ORDER, 
+		: public const_matrix_bidirectional_iterator<T_type, ORDER,
                                            M_ORDER, M_STYLE>
 	{
 			/**** TYPEDEFS ***/
-			typedef matrix_bidirectional_iterator<T_type, ORDER, M_ORDER, 
+			typedef matrix_bidirectional_iterator<T_type, ORDER, M_ORDER,
                                       M_STYLE> self;
-			typedef const_matrix_bidirectional_iterator<T_type, ORDER, 
+			typedef const_matrix_bidirectional_iterator<T_type, ORDER,
                                             M_ORDER, M_STYLE> Base;
-		
+
 		public:
 			/* These are a little formal, but useful */
 			typedef typename std::iterator_traits<Base>::value_type
@@ -362,16 +362,16 @@ namespace scythe {
 			typedef typename std::iterator_traits<Base>::pointer pointer;
 			typedef typename std::iterator_traits<Base>::reference reference;
 
-		
+
 			/**** CONSTRUCTORS ****/
-			
+
 			/* Default constructor */
 			matrix_bidirectional_iterator ()
-				: Base () 
+				: Base ()
 			{}
 
 			/* Standard constructor */
-			matrix_bidirectional_iterator (const Matrix<value_type, M_ORDER, 
+			matrix_bidirectional_iterator (const Matrix<value_type, M_ORDER,
                                                   M_STYLE> &M)
 				:	Base(M)
 			{}

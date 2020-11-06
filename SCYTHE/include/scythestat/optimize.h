@@ -1,4 +1,4 @@
-/* 
+/*
  * Scythe Statistical Library Copyright (C) 2000-2002 Andrew D. Martin
  * and Kevin M. Quinn; 2002-present Andrew D. Martin, Kevin M. Quinn,
  * and Daniel Pemstein.  All Rights Reserved.
@@ -103,7 +103,7 @@ namespace scythe {
 #endif
 
 
-  /* Return the machine epsilon 
+  /* Return the machine epsilon
    * Notes: Algorithm taken from Sedgewick, Robert. 1992. Algorithms
    * in C++. Addison Wesley. pg. 561
    */
@@ -121,7 +121,7 @@ namespace scythe {
     del    = (T) 0.5;
     eps    = (T) 0.0;
     neweps = (T) 1.0;
-  
+
     while ( del > 0 ) {
       if ( 1 + neweps > 1 ) {  /* Then the value might be too large */
         eps = neweps;    /* ...save the current value... */
@@ -134,7 +134,7 @@ namespace scythe {
 
     return eps;
   }
-  
+
    /*! \brief Calculate the definite integral of a function from a to b.
     *
     * This function calculates the definite integral of a univariate
@@ -165,22 +165,22 @@ namespace scythe {
   {
     SCYTHE_CHECK_10(a > b, scythe_invalid_arg,
         "Lower limit larger than upper");
-    
+
     T I = (T) 0;
     T w = (b - a) / N;
     for (unsigned int i = 1; i <= N; ++i)
       I += w * (fun(a +(i - 1) *w) + 4 * fun(a - w / 2 + i * w) +
           fun(a + i * w)) / 6;
-   
+
     return I;
   }
-  
+
    /*! \brief Calculate the definite integral of a function from a to b.
     *
     * This function calculates the definite integral of a univariate
     * function on the interval \f$[a,b]\f$.
     *
-    * \param fun The function (or functor) whose definite integral is 
+    * \param fun The function (or functor) whose definite integral is
     * to be calculated.  This function should both take and return a
     * single argument of type T.
     * \param a The starting value of the interval.
@@ -225,9 +225,9 @@ namespace scythe {
     * formula.
     *
     * \param fun The function to calculate the gradient of.  This
-    * function should both take and return a single Matrix (vector) of 
+    * function should both take and return a single Matrix (vector) of
     * type T.
-    * \param theta The column vector of values at which to calculate 
+    * \param theta The column vector of values at which to calculate
     * the gradient of the function.
     *
     * \see gradfdifls(FUNCTOR fun, T alpha, const Matrix<T,PO1,PS1>& theta, const Matrix<T,PO2,PS2>& p)
@@ -248,7 +248,7 @@ namespace scythe {
             matrix_order PO, matrix_style PS, typename FUNCTOR>
   Matrix<T, RO, RS>
   gradfdif (FUNCTOR fun, const Matrix<T,PO,PS>& theta)
-      
+
   {
     SCYTHE_CHECK_10(! theta.isColVector(), scythe_dimension_error,
         "Theta not column vector");
@@ -273,7 +273,7 @@ namespace scythe {
   }
 
   // Default template version
-  template <typename T, matrix_order O, matrix_style S, 
+  template <typename T, matrix_order O, matrix_style S,
             typename FUNCTOR>
   Matrix<T, O, Concrete>
   gradfdif (FUNCTOR fun, const Matrix<T,O,S>& theta)
@@ -314,7 +314,7 @@ namespace scythe {
   template <typename T, matrix_order PO1, matrix_style PS1,
             matrix_order PO2, matrix_style PS2, typename FUNCTOR>
   T
-  gradfdifls (FUNCTOR fun, T alpha, const Matrix<T,PO1,PS1>& theta, 
+  gradfdifls (FUNCTOR fun, T alpha, const Matrix<T,PO1,PS1>& theta,
               const Matrix<T,PO2,PS2>& p)
 
   {
@@ -324,7 +324,7 @@ namespace scythe {
         "p not column vector");
 
     unsigned int k = theta.size();
-    T h = std::sqrt(epsilon<T>()); 
+    T h = std::sqrt(epsilon<T>());
     h = std::sqrt(h);
     //T h = std::sqrt(2.2e-16);
 
@@ -334,10 +334,10 @@ namespace scythe {
       T temp = alpha + h;
       donothing(temp);
       T e = temp - alpha;
-      deriv = (fun(theta + (alpha + e) * p) - fun(theta + alpha * p)) 
+      deriv = (fun(theta + (alpha + e) * p) - fun(theta + alpha * p))
               / e;
     }
-    
+
     return deriv;
   }
 
@@ -350,7 +350,7 @@ namespace scythe {
     * \param fun The function to calculate the Jacobian of.  This
     * function should both take and return a Matrix (vector) of type
     * T.
-    * \param theta The column vector of parameter values at which to 
+    * \param theta The column vector of parameter values at which to
     * take the Jacobian of \a fun.
     *
     * \see gradfdif(FUNCTOR fun, const Matrix<T,PO,PS>& theta)
@@ -387,7 +387,7 @@ namespace scythe {
     Matrix<T,RO> temp;
     Matrix<T,RO> fthetae;
     Matrix<T,RO> ftheta;
-    
+
     for (int i = 0; i < k; ++i) {
       e = Matrix<T,RO>(k,1);
       e[i] = h;
@@ -400,7 +400,7 @@ namespace scythe {
         J(j,i) = (fthetae[j] - ftheta[j]) / e[i];
       }
     }
-   
+
     return J;
   }
 
@@ -423,7 +423,7 @@ namespace scythe {
     * \param fun The function to calculate the Hessian of.  This
     * function should take a Matrix (vector) of type T and return a
     * single value of type T.
-    * \param theta The column vector of parameter values at which to 
+    * \param theta The column vector of parameter values at which to
     * calculate the Hessian.
     *
     * \see gradfdif(FUNCTOR fun, const Matrix<T,PO,PS>& theta)
@@ -447,7 +447,7 @@ namespace scythe {
   {
     SCYTHE_CHECK_10(! theta.isColVector(), scythe_dimension_error,
         "Theta not column vector");
-    
+
     T fval = fun(theta);
 
     //std::cout << std::endl;
@@ -459,7 +459,7 @@ namespace scythe {
     // stepsize CAREFUL -- THIS IS MACHINE SPECIFIC !!!!
     T h2 = std::sqrt(epsilon<T>());
     //T h2 = (T) 1e-10;
-    T h = std::sqrt(h2); 
+    T h = std::sqrt(h2);
 
     Matrix<T, RO, RS> H(k,k);
 
@@ -481,7 +481,7 @@ namespace scythe {
         temp = theta + ej;
         donothing(temp); // XXX and again
         ej = temp - theta;
-        
+
         if (i == j) {
           H(i,i) = ( -fun(theta + 2.0 * ei) + 16.0 *
               fun(theta + ei) - 30.0 * fval + 16.0 *
@@ -494,7 +494,7 @@ namespace scythe {
         }
       }
     }
-       
+
     //std::cout << "end of hesscdif, H = " << H << "\n";
     return H;
   }
@@ -552,7 +552,7 @@ namespace scythe {
     T alpha = alpha_bar;
     Matrix<T,PO1> fgrad = gradfdif(fun, theta);
 
-    while (fun(theta + alpha * p) > 
+    while (fun(theta + alpha * p) >
            (fun(theta) + c * alpha * t(fgrad) * p)[0]) {
       alpha = rho * alpha;
     }
@@ -613,7 +613,7 @@ namespace scythe {
     for (unsigned int i = 0; i < max_iter; ++i) {
       T phi_cur = fun(theta + alpha_cur * p);
       T phi_last = fun(theta + alpha_last * p);
-     
+
       if ((phi_cur > (fun(theta) + c1 * alpha_cur * fgradalpha0))
           || ((phi_cur >= phi_last) && (i > 0))) {
         T alphastar = zoom(fun, alpha_last, alpha_cur, theta, p);
@@ -628,7 +628,7 @@ namespace scythe {
         T alphastar = zoom(fun, alpha_cur, alpha_last, theta, p);
         return alphastar;
       }
-      
+
       alpha_last = alpha_cur;
       // runif stuff below is probably not correc KQ 12/08/2006
       // I think it should work now DBP 01/02/2007
@@ -664,7 +664,7 @@ namespace scythe {
     * although one can pass a function pointer to this routine,
     * the compiler cannot inline and fully optimize code
     * referenced by function pointers.
-    * 
+    *
     */
   template <typename T, matrix_order PO1, matrix_style PS1,
             matrix_order PO2, matrix_style PS2, typename FUNCTOR>
@@ -687,13 +687,13 @@ namespace scythe {
     while(count < maxit) {
       T phi_j = fun(theta + alpha_j * p);
       T phi_lo = fun(theta + alpha_lo * p);
-     
+
       if ((phi_j > (phi_0 + c1 * alpha_j * fgrad0))
           || (phi_j >= phi_lo)){
         alpha_hi = alpha_j;
       } else {
         T fgradj = gradfdifls(fun, alpha_j, theta, p);
-        if (std::fabs(fgradj) <= -1 * c2 * fgrad0){ 
+        if (std::fabs(fgradj) <= -1 * c2 * fgrad0){
           return alpha_j;
         }
         if ( fgradj * (alpha_hi - alpha_lo) >= 0){
@@ -703,7 +703,7 @@ namespace scythe {
       }
       ++count;
     }
-   
+
     return alpha_j;
   }
 
@@ -723,7 +723,7 @@ namespace scythe {
     * its () operator is invoked).
     * \param maxit The maximum number of iterations.
     * \param tolerance The convergence tolerance.
-    * \param trace Boolean value determining whether BFGS should print 
+    * \param trace Boolean value determining whether BFGS should print
     *              to stdout (defaults to false).
     *
     * \see linesearch1(FUNCTOR fun, const Matrix<T,PO1,PS1>& theta, const Matrix<T,PO2,PS2>& p)
@@ -743,11 +743,11 @@ namespace scythe {
     */
   // there were 2 versions of linesearch1-- the latter was what we
   // had been calling linesearch2
-  template <matrix_order RO, matrix_style RS, typename T, 
+  template <matrix_order RO, matrix_style RS, typename T,
             matrix_order PO, matrix_style PS,
             typename FUNCTOR, typename RNGTYPE>
   Matrix<T,RO,RS>
-  BFGS (FUNCTOR fun, const Matrix<T,PO,PS>& theta, rng<RNGTYPE>& runif, 
+  BFGS (FUNCTOR fun, const Matrix<T,PO,PS>& theta, rng<RNGTYPE>& runif,
         unsigned int maxit, T tolerance, bool trace = false)
   {
     SCYTHE_CHECK_10(! theta.isColVector(), scythe_dimension_error,
@@ -762,7 +762,7 @@ namespace scythe {
     Matrix<T,RO> fgrad = gradfdif(fun, theta);
     Matrix<T,RO> thetamin = theta;
     Matrix<T,RO> fgrad_new = fgrad;
-    Matrix<T,RO> I = eye<T,RO>(n); 
+    Matrix<T,RO> I = eye<T,RO>(n);
     Matrix<T,RO> s;
     Matrix<T,RO> y;
 
@@ -796,7 +796,7 @@ namespace scythe {
         std::cout << "thetamin = " << (t(thetamin)) ;
         std::cout << "gradient = " << (t(fgrad)) ;
         std::cout << "t(gradient) * gradient = " << (t(fgrad) * fgrad) ;
-        std::cout << "function value = " << fun(thetamin) << 
+        std::cout << "function value = " << fun(thetamin) <<
         std::endl << std::endl;
       }
 #endif
@@ -809,7 +809,7 @@ namespace scythe {
       SCYTHE_CHECK(count > maxit, scythe_convergence_error,
           "Failed to converge.  Try better starting values");
     }
-   
+
     return thetamin;
   }
 
@@ -823,9 +823,9 @@ namespace scythe {
     return BFGS<O,Concrete> (fun, theta, runif, maxit, tolerance, trace);
   }
 
-  
+
   /* Solves a system of n nonlinear equations in n unknowns of the form
-   * fun(thetastar) = 0 for thetastar given the function, starting 
+   * fun(thetastar) = 0 for thetastar given the function, starting
    * value theta, max number of iterations, and tolerance.
    * Uses Broyden's method.
    */
@@ -885,7 +885,7 @@ namespace scythe {
       if (max(fabs(fthetastar_new)) < tolerance)
         return thetastar;
     }
- 
+
     SCYTHE_THROW_10(scythe_convergence_error,  "Failed to converge.  Try better starting values or increase maxit");
 
     return thetastar;

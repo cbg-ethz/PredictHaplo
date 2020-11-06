@@ -1,4 +1,4 @@
-/* 
+/*
  * Scythe Statistical Library
  * Copyright (C) 2000-2002 Andrew D. Martin and Kevin M. Quinn;
  * 2002-present Andrew D. Martin, Kevin M. Quinn, and Daniel
@@ -14,7 +14,7 @@
  * scythestat/algorithm.h
  */
 
-/*!  \file algorithm.h 
+/*!  \file algorithm.h
  *
  * \brief Generic algorithms for Scythe objects.
  *
@@ -106,9 +106,9 @@ namespace scythe {
    * \param func The functor to execute on each iteration.
    *
    */
-   
+
   template <typename T, matrix_order O, matrix_style S, class FUNCTOR>
-  void 
+  void
   for_each_ij_set (Matrix<T,O,S>& M, FUNCTOR func)
   {
     if (O == Col) {
@@ -136,10 +136,10 @@ namespace scythe {
   template <matrix_order ORDER1, matrix_order ORDER2,
             typename T, typename S, matrix_order SO, matrix_style SS,
             matrix_order DO, matrix_style DS>
-  void 
+  void
   copy(const Matrix<T,SO,SS>& source, Matrix<S,DO,DS>& dest)
   {
-    std::copy(source.template begin_f<ORDER1>(), 
+    std::copy(source.template begin_f<ORDER1>(),
               source.template end_f<ORDER1>(),
               dest.template begin_f<ORDER2>());
   }
@@ -162,25 +162,25 @@ namespace scythe {
   template <matrix_order ORDER1, matrix_order ORDER2,
             typename T, matrix_order SO, matrix_style SS,
             matrix_order DO, matrix_style DS>
-  void 
+  void
   copy_recycle (const Matrix<T,SO,SS>& source, Matrix<T,DO,DS>& dest)
   {
     if (source.size() == dest.size()) {
       copy<ORDER1,ORDER2> (source, dest);
     } else if (source.size() > dest.size()) {
-      const_matrix_random_access_iterator<T,ORDER1,SO,SS> s_iter 
+      const_matrix_random_access_iterator<T,ORDER1,SO,SS> s_iter
         = source.template begin<ORDER1>();
       std::copy(s_iter, s_iter + dest.size(),
                 dest.template begin_f<ORDER2>());
     } else {
       const_matrix_random_access_iterator<T,ORDER1,SO,SS> s_begin
         = source.template begin<ORDER1> ();
-      matrix_random_access_iterator<T,ORDER2,DO,DS> d_iter 
+      matrix_random_access_iterator<T,ORDER2,DO,DS> d_iter
         = dest.template begin<ORDER2>();
       matrix_random_access_iterator<T,ORDER2,DO,DS> d_end
         = dest.template end<ORDER2>();
       while (d_iter != d_end) {
-        unsigned int span = std::min(source.size(), 
+        unsigned int span = std::min(source.size(),
             (unsigned int) (d_end - d_iter));
         d_iter = std::copy(s_begin, s_begin + span, d_iter);
       }
