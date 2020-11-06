@@ -1,9 +1,15 @@
 
-CFLAGS  =	-O3 -DSCYTHE_LAPACK -DSCYTHE_DEBUG=0 -DHAVE_TRUNC -fPIC -std=c++11 -stdlib=libc++
+CFLAGS  =	-O3 -DSCYTHE_LAPACK -DSCYTHE_DEBUG=0 -DHAVE_TRUNC -fPIC -std=c++11
 
 SCYTHE  =	SCYTHE/include/
 
 EXOBJS	=	PredictHaplo_externAlign.o
+
+
+UNAME := $(shell uname)
+ifeq ($(UNAME), Darwin)
+    CFLAGS += -stdlib=libc++
+endif
 
 
 all:	PredictHaplo-Paired
