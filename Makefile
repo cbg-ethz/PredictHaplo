@@ -12,7 +12,7 @@ endif
 all: PredictHaplo-Paired
 
 clean:
-	rm $(EXOBJS) PredictHaplo-Paired
+	rm -f $(EXOBJS) PredictHaplo-Paired
 
 PredictHaplo-Paired: $(EXOBJS)
 	g++ $(CFLAGS) -o $@ $(EXOBJS) -lblas -llapack
