@@ -1,9 +1,6 @@
-
-CFLAGS  =	-O3 -DSCYTHE_LAPACK -DSCYTHE_DEBUG=0 -DHAVE_TRUNC -fPIC -std=c++11
-
-SCYTHE  =	SCYTHE/include/
-
-EXOBJS	=	PredictHaplo_externAlign.o
+CFLAGS = -O3 -DSCYTHE_LAPACK -DSCYTHE_DEBUG=0 -DHAVE_TRUNC -fPIC -std=c++11
+SCYTHE = SCYTHE/include/
+EXOBJS = PredictHaplo_externAlign.o
 
 
 UNAME := $(shell uname)
@@ -12,12 +9,12 @@ ifeq ($(UNAME), Darwin)
 endif
 
 
-all:	PredictHaplo-Paired
+all: PredictHaplo-Paired
 
 clean:
 	rm $(EXOBJS) PredictHaplo-Paired
 
-PredictHaplo-Paired:	$(EXOBJS)
-	g++ $(CFLAGS)  -o $@  $(EXOBJS)  -lblas -llapack
-PredictHaplo_externAlign.o:	PredictHaplo_externAlign.cpp
-	g++   $(CFLAGS)  -I$(SCYTHE) -c -o $@  $<
+PredictHaplo-Paired: $(EXOBJS)
+	g++ $(CFLAGS) -o $@ $(EXOBJS) -lblas -llapack
+PredictHaplo_externAlign.o: PredictHaplo_externAlign.cpp
+	g++ $(CFLAGS) -I$(SCYTHE) -c -o $@ $<
