@@ -952,7 +952,7 @@ namespace scythe {
       int cols = (int) res.cols();
       int innerDim = A.cols();
 
-      lapack::dgemm_("N", "N", &rows, &cols, &innerDim, &one, Apnt,
+      lapack::dgemm_((char*) "N", (char*) "N", &rows, &cols, &innerDim, &one, Apnt,
                      &rows, Bpnt, &innerDim, &one, respnt, &rows);
 
     }

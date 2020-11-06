@@ -242,6 +242,7 @@ int parse_sam_line(const vector<string>& tokens, 	string& used_qual, 	vector<int
 
   }
 
+  return 0;
 }
 
 
@@ -1176,7 +1177,7 @@ int MultiNomialDPMReadsSemiEntropy(const int& nSample,
   }
 
 
-
+  return 0;
 }
 
 
@@ -1807,7 +1808,7 @@ int visualizeAlignments(int K, int WindowStart, int GD, const vector<int>& Posit
        }
        ofFASTA.close();
 
-
+  return 0;
 }
 
 
@@ -3242,7 +3243,7 @@ int  reconstruct_global(int min_overlap, int K, int  nSample, vector<vector<int>
 
 
  }
-
+  return 0;
 }
 
 

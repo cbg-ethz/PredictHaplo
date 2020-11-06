@@ -5100,7 +5100,7 @@ namespace scythe {
     int innerDim = (int) rhs.rows();
 
     // Call the lapack routine.
-    lapack::dgemm_("N", "N", &rows, &cols, &innerDim, &one, lhspnt,
+    lapack::dgemm_((char*) "N", (char*) "N", &rows, &cols, &innerDim, &one, lhspnt,
                    &rows, rhspnt, &innerDim, &zero, resultpnt, &rows);
 
     return result;

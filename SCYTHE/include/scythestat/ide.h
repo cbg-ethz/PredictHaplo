@@ -1578,13 +1578,13 @@ namespace scythe {
    if (nu < 0) nu = mn;
    if (nv < 0) nv = mn;
    if (nu <= mn && nv<= mn) {
-     jobz = "S";
+     jobz = (char*) "S";
      U = Matrix<>(m, mn, false);
      V = Matrix<>(mn, n, false);
    } else if (nu == 0 && nv == 0) {
-     jobz = "N";
+     jobz = (char*) "N";
    } else {
-     jobz = "A";
+     jobz = (char*) "A";
      U = Matrix<>(m, m, false);
      V = Matrix<>(n, n, false);
    }
