@@ -31,6 +31,7 @@
 #include "scythestat/stat.h"
 #include <cmath>
 #include <fstream>
+#include <getopt.h>
 #include <iostream>
 #include <sstream>
 
@@ -47,7 +48,7 @@ template <class T> struct index_cmp {
 
 bool myfunction(int i, int j) { return (i > j); }
 
-int visualization_level;
+int visualization_level = 1;
 int local_window_size;
 
 string binary(int number, stringstream &strs) {
@@ -2168,7 +2169,7 @@ int local_Analysis(
         if(fabs( log2(strand_K[cc])) < 3)
         */
         //	    if((fabs( log2(strand_K[cc])) < 5) &&
-        //reconstructed_overlaps[cc][reconstructed_overlaps[cc].size()-1]>10)
+        // reconstructed_overlaps[cc][reconstructed_overlaps[cc].size()-1]>10)
         if (reconstructed_overlaps[cc][reconstructed_overlaps[cc].size() - 1] >
             20) {
           good_clusters++;
@@ -2889,16 +2890,11 @@ double median(std::vector<int> &v) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    cout << "usage: PredictHaplo <config.txt>" << endl;
-    return 0;
-  }
-
   qual_subtract = 33;
 
   srand(time(NULL));
 
-  string prefix;
+  string prefix = "predicthaplo_output_";
   string cons;
 
   vector<string> FASTAreads;
@@ -2914,18 +2910,8 @@ int main(int argc, char *argv[]) {
   vector<string> tokens, tokens2, tokens_as;
   int max_reads_in_window = 5000;
 
-  string confStr;
   string prefix_extension = "";
 
-  if (argc == 2) {
-    confStr = argv[1];
-  }
-  if (argc == 3) {
-    confStr = argv[2];
-    prefix_extension = argv[1];
-  }
-  cout << confStr << endl;
-  ifstream infConf(confStr.c_str(), ios::in);
   int reconstruction_start, reconstruction_stop;
   double alpha_MN_local = 1;
   double max_gap_fraction = 0.015;
@@ -2945,92 +2931,82 @@ int main(int argc, char *argv[]) {
   int count = 0;
   vector<string> arg_buffer_sub;
 
+  // commandline interface (TODO: add all remaining options)
+  static struct option longopts[] = {
+      {"prefix", required_argument, NULL, 'p'},
+      {"reference", required_argument, NULL, 'r'},
+      {"visualization_level", required_argument, NULL, 'd'},
+      {"sam", required_argument, NULL, 's'},
+      {"have_true_haplotypes", required_argument, NULL, 't'},
+      {"true_haplotypes", required_argument, NULL, 'T'},
+      {"do_local_Analysis", required_argument, NULL, 'a'},
+      {NULL, 0, NULL, 0}};
+
+  int ch;
+  while ((ch = getopt_long(argc, argv, "p:r:d:s:t:T:a:", longopts, NULL)) !=
+         -1) {
+    switch (ch) {
+    case 'p':
+      prefix = optarg;
+      break;
+    case 'r':
+      cons = optarg;
+      break;
+    case 'd':
+      visualization_level = atoi(optarg);
+      break;
+    case 's':
+      // TODO: also allow multiple read files
+      FASTAreads.push_back(optarg);
+      break;
+    case 't':
+      have_true_haplotypes = atoi(optarg);
+      break;
+    case 'T':
+      FASTAhaplos = optarg;
+      break;
+    case 'a':
+      do_local_Analysis = atoi(optarg);
+      break;
+    case '?':
+    default:
+      cout << "Usage: " << argv[0] << "\n"
+           << "  --sam [filename of the aligned reads (sam format)]\n"
+           << "  --reference [% filename of reference sequence (FASTA)]\n"
+           << "  --prefix [prefix of output files]\n"
+           << "  --visualization_level [do_visualize (1 = true, 0 = false)]\n"
+           << "  --have_true_haplotypes [have_true_haplotypes  (1 = true, 0 = "
+              "false)]\n"
+           << "  --true_haplotypes [filname of the true haplotypes (MSA in "
+              "FASTA format) (fill in any dummy filename if there is no "
+              "\"true\" haplotypes)]\n"
+           << "  --do_local_Analysis [do_local_analysis  (1 = true, 0 = false) "
+              "(must be 1 in the first run)]"
+           << endl;
+      return 1;
+    }
+  }
+
+  if (FASTAreads.size() == 0) {
+    cout << "No SAM file (--sam) specified" << endl;
+    return 1;
+  }
+  if (cons == "") {
+    cout << "No reference (--reference) specified" << endl;
+    return 1;
+  }
+
+  cout << "Configuration:\n"
+       << "  prefix = " << prefix << "\n"
+       << "  cons = " << cons << "\n"
+       << "  visualization_level = " << visualization_level << "\n"
+       << "  FASTAreads = " << FASTAreads[0] << "\n"
+       << "  have_true_haplotypes = " << have_true_haplotypes << "\n"
+       << "  FASTAhaplos = " << FASTAhaplos << "\n"
+       << "  do_local_Analysis = " << do_local_Analysis << "" << endl;
+
+  // let's go!
   include_deletions = false;
-
-  while (!infConf.eof()) {
-    getline(infConf, line, '\n');
-
-    if (line.size() == 0 || line[0] == '%') {
-
-      if (arg_buffer_sub.size() > 0) {
-        cout << count << ' ' << line << endl;
-        arg_buffer.push_back(arg_buffer_sub);
-        arg_buffer_sub.clear();
-        count += 1;
-      }
-      continue;
-    }
-
-    arg_buffer_sub.push_back(line);
-    // cout << line << endl;
-    cout << count << ' ' << line << endl;
-  }
-
-  if (arg_buffer_sub.size() > 0) {
-    arg_buffer.push_back(arg_buffer_sub);
-    arg_buffer_sub.clear();
-    count += 1;
-  }
-
-  infConf.close();
-
-  if (count < 7) {
-    cout << "problem with config file...please check" << endl;
-    return 0;
-  }
-
-  prefix = arg_buffer[0][0];
-  cons = arg_buffer[1][0];
-  visualization_level = atoi(arg_buffer[2][0].c_str());
-  FASTAreads = arg_buffer[3];
-  have_true_haplotypes = atoi(arg_buffer[4][0].c_str());
-  FASTAhaplos = arg_buffer[5][0];
-  do_local_Analysis = atoi(arg_buffer[6][0].c_str());
-
-  if (count > 7) {
-    max_reads_in_window = atoi(arg_buffer[7][0].c_str());
-    if (count >= 8) {
-      entropy_threshold = atof(arg_buffer[8][0].c_str());
-      if (count >= 9) {
-        reconstruction_start = atoi(arg_buffer[9][0].c_str());
-        if (count >= 10) {
-          reconstruction_stop = atoi(arg_buffer[10][0].c_str());
-          if (count >= 11) {
-            min_qual = atoi(arg_buffer[11][0].c_str());
-            if (count >= 12) {
-              min_length = atoi(arg_buffer[12][0].c_str());
-              if (count >= 13) {
-                max_gap_fraction = atof(arg_buffer[13][0].c_str());
-                if (count >= 14) {
-                  min_align_score_fraction = atof(arg_buffer[14][0].c_str());
-                  if (count >= 15) {
-                    alpha_MN_local = atof(arg_buffer[15][0].c_str());
-                    if (count >= 16) {
-                      min_overlap_factor = atof(arg_buffer[16][0].c_str());
-                      if (count >= 17) {
-                        local_window_size_factor =
-                            atof(arg_buffer[17][0].c_str());
-                        if (count >= 18) {
-                          K = atoi(arg_buffer[18][0].c_str());
-                          if (count >= 19) {
-                            nSample = atoi(arg_buffer[19][0].c_str());
-                            if (count >= 20) {
-                              include_deletions =
-                                  atoi(arg_buffer[20][0].c_str());
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
 
   prefix = prefix + prefix_extension;
 
