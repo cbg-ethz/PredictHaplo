@@ -2945,10 +2945,11 @@ int main(int argc, char *argv[]) {
       {"have_true_haplotypes", required_argument, NULL, 't'},
       {"true_haplotypes", required_argument, NULL, 'T'},
       {"do_local_Analysis", required_argument, NULL, 'a'},
+      {"help", no_argument, NULL, 'h'},
       {NULL, 0, NULL, 0}};
 
   int ch;
-  while ((ch = getopt_long(argc, argv, "p:r:d:s:t:T:a:", longopts, NULL)) !=
+  while ((ch = getopt_long(argc, argv, "p:r:d:s:t:T:a:h", longopts, NULL)) !=
          -1) {
     switch (ch) {
     case 'p':
@@ -2973,9 +2974,9 @@ int main(int argc, char *argv[]) {
     case 'a':
       do_local_Analysis = atoi(optarg);
       break;
-    case '?':
-    default:
+    case 'h':
       cout << "Usage: " << argv[0] << "\n"
+           << "  --help [show this message]\n"
            << "  --sam [filename of the aligned reads (sam format)]\n"
            << "  --reference [% filename of reference sequence (FASTA)]\n"
            << "  --prefix [prefix of output files]\n"
@@ -2988,6 +2989,8 @@ int main(int argc, char *argv[]) {
            << "  --do_local_Analysis [do_local_analysis  (1 = true, 0 = false) "
               "(must be 1 in the first run)]"
            << endl;
+    case '?':
+    default:
       return 1;
     }
   }
