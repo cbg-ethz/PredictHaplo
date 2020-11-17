@@ -2902,30 +2902,35 @@ int main(int argc, char *argv[]) {
   string FASTAhaplos;
 
   bool do_local_Analysis = true;
-  double entropy_threshold = 1e-2;
+  double entropy_threshold = 4e-2;
   double entropy_fraction = 0.25;
 
   string line, line_stats, line_ID;
   string tok = ":";
   vector<string> tokens, tokens2, tokens_as;
-  int max_reads_in_window = 5000;
+  int max_reads_in_window = 10000;
 
   string prefix_extension = "";
 
   int reconstruction_start, reconstruction_stop;
-  double alpha_MN_local = 1;
-  double max_gap_fraction = 0.015;
-  double min_align_score_fraction = 0.4;
+  double alpha_MN_local =
+      25; // prior parameter for multinomial tables over the nucleotides
+  double max_gap_fraction = 0.05;         // relative to alignment length
+  double min_align_score_fraction = 0.35; // relative to read length
 
-  double min_qual = 59;
-  int min_length = 90;
+  double min_qual = 30;
+  int min_length = 220;
 
-  double min_overlap_factor = 0.7;
-  double local_window_size_factor = 0.4;
+  double min_overlap_factor =
+      0.85; // reads must have an overlap with the local reconstruction window
+            // of at least this factor times the window size
+  double local_window_size_factor =
+      0.7; // size of  local reconstruction window relative to the median of the
+           // read lengths
 
   double mismatch = 3.0, gap_open = 7.0, gap_extension = 3.0;
-  int K = 25;
-  int nSample = 401;
+  int K = 25; // max number of clusters (in the truncated Dirichlet process)
+  int nSample = 501; // MCMC iterations
 
   vector<vector<string>> arg_buffer;
   int count = 0;
