@@ -3031,13 +3031,13 @@ int main(int argc, char *argv[]) {
   // TODO: this can only go wrong at some point
   system(("mkdir -p $(dirname " + prefix + ")").c_str());
 
-  string fas_rm = "rm " + prefix + "*.fas";
-  string fas_global_rm = "rm " + prefix + "global*.fas";
-  string lab_rm = "rm " + prefix + "*.lab";
-  string reads_rm = "rm " + prefix + "*.reads";
-  string html_rm = "rm " + prefix + "*.html";
-  string pgm_rm = "rm " + prefix + "*.pgm";
-  string html_global_rm = "rm " + prefix + "global*.html";
+  string fas_rm = "rm -f " + prefix + "*.fas";
+  string fas_global_rm = "rm -f " + prefix + "global*.fas";
+  string lab_rm = "rm -f " + prefix + "*.lab";
+  string reads_rm = "rm -f " + prefix + "*.reads";
+  string html_rm = "rm -f " + prefix + "*.html";
+  string pgm_rm = "rm -f " + prefix + "*.pgm";
+  string html_global_rm = "rm -f " + prefix + "global*.html";
   bool do_rm = true; // false;
 
   if (do_rm) {
