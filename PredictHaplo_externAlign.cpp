@@ -2894,7 +2894,7 @@ int main(int argc, char *argv[]) {
 
   srand(time(NULL));
 
-  string prefix = "predicthaplo_output_";
+  string prefix = "predicthaplo_output/ph_";
   string cons;
 
   vector<string> FASTAreads;
@@ -3027,6 +3027,9 @@ int main(int argc, char *argv[]) {
   include_deletions = false;
 
   prefix = prefix + prefix_extension;
+
+  // TODO: this can only go wrong at some point
+  system(("mkdir -p $(dirname " + prefix + ")").c_str());
 
   string fas_rm = "rm " + prefix + "*.fas";
   string fas_global_rm = "rm " + prefix + "global*.fas";
