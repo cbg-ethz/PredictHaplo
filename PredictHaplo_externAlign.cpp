@@ -3029,7 +3029,7 @@ int main(int argc, char *argv[]) {
   prefix = prefix + prefix_extension;
 
   // TODO: this can only go wrong at some point
-  system(("mkdir -p $(dirname " + prefix + ")").c_str());
+  int mkdir_ret = system(("mkdir -p $(dirname " + prefix + ")").c_str());
 
   string fas_rm = "rm -f " + prefix + "*.fas";
   string fas_global_rm = "rm -f " + prefix + "global*.fas";
