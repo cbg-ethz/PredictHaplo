@@ -9,12 +9,12 @@ ifeq ($(UNAME), Darwin)
 endif
 
 
-all: PredictHaplo-Paired
+all: predicthaplo
 
 clean:
-	rm -f $(EXOBJS) PredictHaplo-Paired
+	rm -f $(EXOBJS) predicthaplo
 
-PredictHaplo-Paired: $(EXOBJS)
+predicthaplo: $(EXOBJS)
 	g++ $(CFLAGS) -o $@ $(EXOBJS) -lblas -llapack
 PredictHaplo_externAlign.o: PredictHaplo_externAlign.cpp
 	g++ $(CFLAGS) -I$(SCYTHE) -c -o $@ $<
