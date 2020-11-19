@@ -2938,43 +2938,40 @@ int main(int argc, char *argv[]) {
 
   // commandline interface (TODO: add all remaining options)
   static struct option longopts[] = {
-      {"prefix", required_argument, NULL, 'p'},
-      {"reference", required_argument, NULL, 'r'},
-      {"visualization_level", required_argument, NULL, 'd'},
-      {"sam", required_argument, NULL, 's'},
-      {"have_true_haplotypes", required_argument, NULL, 't'},
-      {"true_haplotypes", required_argument, NULL, 'T'},
-      {"do_local_Analysis", required_argument, NULL, 'a'},
-      {"help", no_argument, NULL, 'h'},
+      {"prefix", required_argument, NULL, 0},
+      {"reference", required_argument, NULL, 0},
+      {"visualization_level", required_argument, NULL, 0},
+      {"sam", required_argument, NULL, 0},
+      {"have_true_haplotypes", required_argument, NULL, 0},
+      {"true_haplotypes", required_argument, NULL, 0},
+      {"do_local_Analysis", required_argument, NULL, 0},
+      {"help", no_argument, NULL, 0},
       {NULL, 0, NULL, 0}};
 
   int ch;
-  while ((ch = getopt_long(argc, argv, "p:r:d:s:t:T:a:h", longopts, NULL)) !=
-         -1) {
-    switch (ch) {
-    case 'p':
+  int longindex = -1;
+  while ((ch = getopt_long(argc, argv, "", longopts, &longindex)) != -1) {
+    if (ch == '?') {
+      return 1;
+    }
+
+    string choice = longopts[longindex].name;
+    if (choice == "prefix") {
       prefix = optarg;
-      break;
-    case 'r':
+    } else if (choice == "reference") {
       cons = optarg;
-      break;
-    case 'd':
+    } else if (choice == "visualization_level") {
       visualization_level = atoi(optarg);
-      break;
-    case 's':
+    } else if (choice == "sam") {
       // TODO: also allow multiple read files
       FASTAreads.push_back(optarg);
-      break;
-    case 't':
+    } else if (choice == "have_true_haplotypes") {
       have_true_haplotypes = atoi(optarg);
-      break;
-    case 'T':
+    } else if (choice == "true_haplotypes") {
       FASTAhaplos = optarg;
-      break;
-    case 'a':
+    } else if (choice == "do_local_Analysis") {
       do_local_Analysis = atoi(optarg);
-      break;
-    case 'h':
+    } else if (choice == "help") {
       cout << "Usage: " << argv[0] << " [OPTIONS]\n"
            << "\n"
            << "  This software aims at reconstructing haplotypes from "
@@ -2999,8 +2996,8 @@ int main(int argc, char *argv[]) {
               "(must be 1 in the first run).\n"
            << "  --help                      Show this message and exit.\n"
            << endl;
-    case '?':
-    default:
+      return 1;
+    } else {
       return 1;
     }
   }
