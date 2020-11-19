@@ -3052,7 +3052,7 @@ int main(int argc, char *argv[]) {
            << "  --include_deletions INT           Include deletions (0 = no, 1 = yes).\n"
            << "  --help                            Show this message and exit.\n"
            << endl;
-      return 1;
+      return 0;
     } else {
       return 1;
     }
