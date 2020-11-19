@@ -3050,7 +3050,7 @@ int main(int argc, char *argv[]) {
            << "  --cluster_number INT              Max number of clusters (in the truncated Dirichlet process).\n"
            << "  --nSample INT                     MCMC iterations.\n"
            << "  --include_deletions INT           Include deletions (0 = no, 1 = yes).\n"
-           << "  --help                      Show this message and exit.\n"
+           << "  --help                            Show this message and exit.\n"
            << endl;
       return 1;
     } else {
