@@ -3044,7 +3044,7 @@ int main(int argc, char *argv[]) {
            << "  --min_readlength INT              ...\n"
            << "  --max_gap_fraction FLOAT          Relative to alignment length.\n"
            << "  --min_align_score_fraction FLOAT  Relative to read length.\n"
-           << "  --alpha_MN_local INT              Prior parameter for multinomial tables over the nucleotides.\n"
+           << "  --alpha_MN_local FLOAT            Prior parameter for multinomial tables over the nucleotides.\n"
            << "  --min_overlap_factor FLOAT        Reads must have an overlap with the local reconstruction window of at least this factor times the window size.\n"
            << "  --local_window_size_factor FLOAT  Size of  local reconstruction window relative to the median of the read lengths.\n"
            << "  --cluster_number INT              Max number of clusters (in the truncated Dirichlet process).\n"
