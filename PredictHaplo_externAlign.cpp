@@ -113,7 +113,7 @@ vector<string> tokenize(const string &str, const string &delimiters) {
 }
 
 int qual_subtract;
-bool include_deletions;
+bool include_deletions = true;
 int levels;
 
 int parse_sam_line(const vector<string> &tokens, string &used_qual,
@@ -2936,7 +2936,7 @@ int main(int argc, char *argv[]) {
   int count = 0;
   vector<string> arg_buffer_sub;
 
-  // commandline interface (TODO: add all remaining options)
+  // commandline interface
   static struct option longopts[] = {
       {"prefix", required_argument, NULL, 0},
       {"reference", required_argument, NULL, 0},
@@ -2945,6 +2945,20 @@ int main(int argc, char *argv[]) {
       {"have_true_haplotypes", required_argument, NULL, 0},
       {"true_haplotypes", required_argument, NULL, 0},
       {"do_local_Analysis", required_argument, NULL, 0},
+      {"max_reads_in_window", required_argument, NULL, 0},
+      {"entropy_threshold", required_argument, NULL, 0},
+      {"reconstruction_start", required_argument, NULL, 0},
+      {"reconstruction_stop", required_argument, NULL, 0},
+      {"min_qual", required_argument, NULL, 0},
+      {"min_length", required_argument, NULL, 0},
+      {"max_gap_fraction", required_argument, NULL, 0},
+      {"min_align_score_fraction", required_argument, NULL, 0},
+      {"alpha_MN_local", required_argument, NULL, 0},
+      {"min_overlap_factor", required_argument, NULL, 0},
+      {"local_window_size_factor", required_argument, NULL, 0},
+      {"cluster_number", required_argument, NULL, 0},
+      {"nSample", required_argument, NULL, 0},
+      {"include_deletions", required_argument, NULL, 0},
       {"help", no_argument, NULL, 0},
       {NULL, 0, NULL, 0}};
 
@@ -2971,6 +2985,34 @@ int main(int argc, char *argv[]) {
       FASTAhaplos = optarg;
     } else if (choice == "do_local_Analysis") {
       do_local_Analysis = atoi(optarg);
+    } else if (choice == "max_reads_in_window") {
+      max_reads_in_window = atoi(optarg);
+    } else if (choice == "entropy_threshold") {
+      entropy_threshold = atof(optarg);
+    } else if (choice == "reconstruction_start") {
+      reconstruction_start = atoi(optarg);
+    } else if (choice == "reconstruction_stop") {
+      reconstruction_stop = atoi(optarg);
+    } else if (choice == "min_qual") {
+      min_qual = atoi(optarg);
+    } else if (choice == "min_length") {
+      min_length = atoi(optarg);
+    } else if (choice == "max_gap_fraction") {
+      max_gap_fraction = atof(optarg);
+    } else if (choice == "min_align_score_fraction") {
+      min_align_score_fraction = atof(optarg);
+    } else if (choice == "alpha_MN_local") {
+      alpha_MN_local = atof(optarg);
+    } else if (choice == "min_overlap_factor") {
+      min_overlap_factor = atof(optarg);
+    } else if (choice == "local_window_size_factor") {
+      local_window_size_factor = atof(optarg);
+    } else if (choice == "cluster_number") {
+      K = atoi(optarg);
+    } else if (choice == "nSample") {
+      nSample = atoi(optarg);
+    } else if (choice == "include_deletions") {
+      include_deletions = atoi(optarg);
     } else if (choice == "help") {
       cout << "Usage: " << argv[0] << " [OPTIONS]\n"
            << "\n"
@@ -2978,22 +3020,36 @@ int main(int argc, char *argv[]) {
               "next-generation sequencing data.\n"
            << "\n"
            << "Options:\n"
-           << "  --sam FILE                  Filename of the aligned reads "
+           << "  --sam FILE                        Filename of the aligned reads "
               "(sam format).\n"
-           << "  --reference FILE            Filename of reference sequence "
+           << "  --reference FILE                  Filename of reference sequence "
               "(FASTA).\n"
-           << "  --prefix STR                Prefix of output files.\n"
-           << "  --visualization_level INT   do_visualize (1 = true, 0 = "
+           << "  --prefix STR                      Prefix of output files.\n"
+           << "  --visualization_level INT         do_visualize (1 = true, 0 = "
               "false).\n"
-           << "  --have_true_haplotypes INT  have_true_haplotypes (1 = true, 0 "
+           << "  --have_true_haplotypes INT        have_true_haplotypes (1 = true, 0 "
               "= false).\n"
-           << "  --true_haplotypes FILE      Filename of the true haplotypes "
+           << "  --true_haplotypes FILE            Filename of the true haplotypes "
               "(MSA in "
               "FASTA format) (fill in any dummy filename if there is no "
               "\"true\" haplotypes).\n"
-           << "  --do_local_Analysis INT     do_local_analysis (1 = true, 0 = "
+           << "  --do_local_Analysis INT           do_local_analysis (1 = true, 0 = "
               "false) "
               "(must be 1 in the first run).\n"
+           << "  --max_reads_in_window INT         ...\n"
+           << "  --entropy_threshold FLOAT         ...\n"
+           << "  --reconstruction_start INT        ...\n"
+           << "  --reconstruction_stop INT         ...\n"
+           << "  --min_mapping_qual INT            ...\n"
+           << "  --min_readlength INT              ...\n"
+           << "  --max_gap_fraction FLOAT          Relative to alignment length.\n"
+           << "  --min_align_score_fraction FLOAT  Relative to read length.\n"
+           << "  --alpha_MN_local INT              Prior parameter for multinomial tables over the nucleotides.\n"
+           << "  --min_overlap_factor FLOAT        Reads must have an overlap with the local reconstruction window of at least this factor times the window size.\n"
+           << "  --local_window_size_factor FLOAT  Size of  local reconstruction window relative to the median of the read lengths.\n"
+           << "  --cluster_number INT              Max number of clusters (in the truncated Dirichlet process).\n"
+           << "  --nSample INT                     MCMC iterations.\n"
+           << "  --include_deletions INT           Include deletions (0 = no, 1 = yes).\n"
            << "  --help                      Show this message and exit.\n"
            << endl;
       return 1;
