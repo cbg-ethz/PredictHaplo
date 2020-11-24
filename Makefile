@@ -15,6 +15,6 @@ clean:
 	rm -f $(EXOBJS) predicthaplo
 
 predicthaplo: $(EXOBJS)
-	$(CXX) $(CFLAGS) -o $@ $(EXOBJS) -lblas -llapack
+	$(CXX) $(CFLAGS) $(LDFLAGS) -o $@ $(EXOBJS) -lblas -llapack
 PredictHaplo_externAlign.o: PredictHaplo_externAlign.cpp
 	$(CXX) $(CFLAGS) -I$(SCYTHE) -c -o $@ $<
