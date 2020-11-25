@@ -1,11 +1,13 @@
-CFLAGS = -O3 -DSCYTHE_LAPACK -DSCYTHE_DEBUG=0 -DHAVE_TRUNC -fPIC -std=c++11 -Werror # -Wall -Wextra
 SCYTHE = SCYTHE/include/
+CPPFLAGS += -DSCYTHE_LAPACK -DSCYTHE_DEBUG=0 -DHAVE_TRUNC -I$(SCYTHE)
+CXXFLAGS += -O3 -fPIC -std=c++11 -Werror # -Wall -Wextra
+LDLIBS += -lblas -llapack
 EXOBJS = PredictHaplo_externAlign.o
 
 
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
-    CFLAGS += -stdlib=libc++
+    CXXFLAGS += -stdlib=libc++
 endif
 
 
@@ -15,6 +17,4 @@ clean:
 	rm -f $(EXOBJS) predicthaplo
 
 predicthaplo: $(EXOBJS)
-	$(CXX) $(CFLAGS) $(LDFLAGS) -o $@ $(EXOBJS) -lblas -llapack
-PredictHaplo_externAlign.o: PredictHaplo_externAlign.cpp
-	$(CXX) $(CFLAGS) -I$(SCYTHE) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
