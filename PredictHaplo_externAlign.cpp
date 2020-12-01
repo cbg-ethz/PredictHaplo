@@ -32,6 +32,7 @@
 #include <cmath>
 #include <fstream>
 #include <getopt.h>
+#include <htslib/sam.h>
 #include <iostream>
 #include <sstream>
 
@@ -216,6 +217,42 @@ int parse_sam_line(const vector<string> &tokens, string &used_qual,
       // }
     }
   }
+
+  return 0;
+}
+
+int parseBAM(string fname, double max_gap_fraction,
+             double min_align_score_fraction, double min_qual, int min_length,
+             char gap_quality, double &mean_length, int &min_seq_start,
+             int &max_seq_start, int &max_sequence_stop, int &min_sequence_stop,
+             bool &have_quality_scores, vector<string> &quality_scores,
+             vector<int> &strand, vector<vector<int>> &Reads,
+             vector<int> &Positions_Start, vector<string> &IDs) {
+  cout << "Parsing " << fname << endl;
+  samFile *fpIn = hts_open(fname.c_str(), "r");
+  bam_hdr_t *bamHdr = sam_hdr_read(fpIn);
+  bam1_t *aln = bam_init1();
+
+  while (sam_read1(fpIn, bamHdr, aln) == 0) {
+    int32_t pos = aln->core.pos + 1; // zero based coordianate (+1)
+    char *contigName = bamHdr->target_name[aln->core.tid];
+    uint32_t readLength = aln->core.l_qseq;
+
+    uint8_t *qualityString = bam_get_seq(aln);
+    uint32_t mappingQuality = aln->core.qual;
+
+    char *sequence = (char *)malloc(readLength);
+    for (int i = 0; i < readLength; ++i) {
+      sequence[i] =
+          seq_nt16_str[bam_seqi(qualityString, i)]; // nucleotide id -> IUPAC id
+    }
+
+    printf("%s\t%d\t%d\t%d\t%s\t%s\n", contigName, pos, mappingQuality,
+           readLength, sequence, qualityString);
+  }
+
+  bam_destroy1(aln);
+  sam_close(fpIn);
 
   return 0;
 }
@@ -3014,44 +3051,58 @@ int main(int argc, char *argv[]) {
     } else if (choice == "include_deletions") {
       include_deletions = atoi(optarg);
     } else if (choice == "help") {
-      cout << "Usage: " << argv[0] << " [OPTIONS]\n"
-           << "\n"
-           << "  This software aims at reconstructing haplotypes from "
-              "next-generation sequencing data.\n"
-           << "\n"
-           << "Options:\n"
-           << "  --sam FILE                        Filename of the aligned reads "
-              "(sam format).\n"
-           << "  --reference FILE                  Filename of reference sequence "
-              "(FASTA).\n"
-           << "  --prefix STR                      Prefix of output files.\n"
-           << "  --visualization_level INT         do_visualize (1 = true, 0 = "
-              "false).\n"
-           << "  --have_true_haplotypes INT        have_true_haplotypes (1 = true, 0 "
-              "= false).\n"
-           << "  --true_haplotypes FILE            Filename of the true haplotypes "
-              "(MSA in "
-              "FASTA format) (fill in any dummy filename if there is no "
-              "\"true\" haplotypes).\n"
-           << "  --do_local_Analysis INT           do_local_analysis (1 = true, 0 = "
-              "false) "
-              "(must be 1 in the first run).\n"
-           << "  --max_reads_in_window INT         ...\n"
-           << "  --entropy_threshold FLOAT         ...\n"
-           << "  --reconstruction_start INT        ...\n"
-           << "  --reconstruction_stop INT         ...\n"
-           << "  --min_mapping_qual INT            ...\n"
-           << "  --min_readlength INT              ...\n"
-           << "  --max_gap_fraction FLOAT          Relative to alignment length.\n"
-           << "  --min_align_score_fraction FLOAT  Relative to read length.\n"
-           << "  --alpha_MN_local FLOAT            Prior parameter for multinomial tables over the nucleotides.\n"
-           << "  --min_overlap_factor FLOAT        Reads must have an overlap with the local reconstruction window of at least this factor times the window size.\n"
-           << "  --local_window_size_factor FLOAT  Size of  local reconstruction window relative to the median of the read lengths.\n"
-           << "  --cluster_number INT              Max number of clusters (in the truncated Dirichlet process).\n"
-           << "  --nSample INT                     MCMC iterations.\n"
-           << "  --include_deletions INT           Include deletions (0 = no, 1 = yes).\n"
-           << "  --help                            Show this message and exit.\n"
-           << endl;
+      cout
+          << "Usage: " << argv[0] << " [OPTIONS]\n"
+          << "\n"
+          << "  This software aims at reconstructing haplotypes from "
+             "next-generation sequencing data.\n"
+          << "\n"
+          << "Options:\n"
+          << "  --sam FILE                        Filename of the aligned "
+             "reads "
+             "(sam format).\n"
+          << "  --reference FILE                  Filename of reference "
+             "sequence "
+             "(FASTA).\n"
+          << "  --prefix STR                      Prefix of output files.\n"
+          << "  --visualization_level INT         do_visualize (1 = true, 0 = "
+             "false).\n"
+          << "  --have_true_haplotypes INT        have_true_haplotypes (1 = "
+             "true, 0 "
+             "= false).\n"
+          << "  --true_haplotypes FILE            Filename of the true "
+             "haplotypes "
+             "(MSA in "
+             "FASTA format) (fill in any dummy filename if there is no "
+             "\"true\" haplotypes).\n"
+          << "  --do_local_Analysis INT           do_local_analysis (1 = true, "
+             "0 = "
+             "false) "
+             "(must be 1 in the first run).\n"
+          << "  --max_reads_in_window INT         ...\n"
+          << "  --entropy_threshold FLOAT         ...\n"
+          << "  --reconstruction_start INT        ...\n"
+          << "  --reconstruction_stop INT         ...\n"
+          << "  --min_mapping_qual INT            ...\n"
+          << "  --min_readlength INT              ...\n"
+          << "  --max_gap_fraction FLOAT          Relative to alignment "
+             "length.\n"
+          << "  --min_align_score_fraction FLOAT  Relative to read length.\n"
+          << "  --alpha_MN_local FLOAT            Prior parameter for "
+             "multinomial tables over the nucleotides.\n"
+          << "  --min_overlap_factor FLOAT        Reads must have an overlap "
+             "with the local reconstruction window of at least this factor "
+             "times the window size.\n"
+          << "  --local_window_size_factor FLOAT  Size of  local "
+             "reconstruction window relative to the median of the read "
+             "lengths.\n"
+          << "  --cluster_number INT              Max number of clusters (in "
+             "the truncated Dirichlet process).\n"
+          << "  --nSample INT                     MCMC iterations.\n"
+          << "  --include_deletions INT           Include deletions (0 = no, 1 "
+             "= yes).\n"
+          << "  --help                            Show this message and exit.\n"
+          << endl;
       return 0;
     } else {
       return 1;
@@ -3174,6 +3225,11 @@ int main(int argc, char *argv[]) {
            << Reads.size() << endl;
     }
   }
+
+  parseBAM(FASTAreads[0], max_gap_fraction, min_align_score_fraction, min_qual,
+           min_length, gap_quality, mean_length, min_seq_start, max_seq_start,
+           max_sequence_stop, min_sequence_stop, have_quality_scores,
+           quality_scores, strand, Reads, Positions_Start, IDs);
 
   error_flag = parseSAMpaired(
       FASTAreads[0], max_gap_fraction, min_align_score_fraction, min_qual,

@@ -1,7 +1,7 @@
 SCYTHE = SCYTHE/include/
 CPPFLAGS += -DSCYTHE_LAPACK -DSCYTHE_DEBUG=0 -DHAVE_TRUNC -I$(SCYTHE)
 CXXFLAGS += -O3 -fPIC -std=c++11 -Werror # -Wall -Wextra
-LDLIBS += -lblas -llapack
+LDLIBS += -lblas -llapack -lhts
 EXOBJS = PredictHaplo_externAlign.o
 
 
