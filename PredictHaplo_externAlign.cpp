@@ -3572,7 +3572,7 @@ int main(int argc, char *argv[]) {
   }
 
   string startStopStr = prefix + "StartStop.txt";
-  int max_clusters = 0;
+  int max_clusters = -1;
   int max_index;
   WindowStartStop.clear();
   ifstream inS(startStopStr.c_str(), ios::in);
@@ -3593,6 +3593,11 @@ int main(int argc, char *argv[]) {
     }
   }
   inS.close();
+
+  if (max_clusters < 0) {
+    cout << "Could not find window with maximum cluster number." << endl;
+    return 1;
+  }
 
   double min_d = 1e100;
   int min_i;
