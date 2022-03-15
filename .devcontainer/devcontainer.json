@@ -1,0 +1,13 @@
+{
+  "name": "dev",
+  "build": {
+    "dockerfile": "../docker/Dockerfile",
+  },
+  "settings": {
+    "cmake.buildDirectory": "/tmp/build"
+  },
+  "extensions": [
+    "ms-vscode.cmake-tools",
+    "ms-vscode.cpptools"
+  ]
+}
