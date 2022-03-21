@@ -12,7 +12,8 @@ We adapt the SCYTHE library from [MCMCpack's](https://github.com/cran/MCMCpack) 
 ## Compilation
 
 ```bash
-$ make
+$ cmake -DCMAKE_BUILD_TYPE=Release -B build -S .
+$ cmake --build build
 ```
 
 ## Usage
