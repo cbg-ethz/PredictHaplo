@@ -4,7 +4,10 @@
     "dockerfile": "../docker/Dockerfile",
   },
   "settings": {
-    "cmake.buildDirectory": "/tmp/build"
+    "cmake.buildDirectory": "/tmp/build",
+    "cmake.configureSettings": {
+      "PHAPLO_ENABLE_UNIT_TESTS": "ON"
+    }
   },
   "extensions": [
     "ms-vscode.cmake-tools",

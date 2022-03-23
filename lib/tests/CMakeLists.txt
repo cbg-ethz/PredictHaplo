@@ -15,10 +15,13 @@
 
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-find_package(GTest MODULE)
-if (NOT GTest_FOUND)
+option(PHAPLO_ENABLE_UNIT_TESTS "enables unit tests (requires GTest library)" OFF)
+
+if (NOT PHAPLO_ENABLE_UNIT_TESTS)
   return()
 endif()
+
+find_package(GTest 1.10 MODULE REQUIRED)
 
 add_executable(
   phaplo_Tests
