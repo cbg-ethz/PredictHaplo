@@ -15,37 +15,16 @@
 
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-project(predicthaplo VERSION 2.1.4)
-
-find_package(LAPACK REQUIRED)
-
-add_library(scythe INTERFACE)
-target_include_directories(scythe
-  INTERFACE
-  SCYTHE/include
+add_library(phaplo
+  median.cpp
 )
-target_link_libraries(scythe
-  INTERFACE
-  ${LAPACK_LIBRARIES}
+target_include_directories(phaplo
+  PUBLIC
+  include
 )
-target_compile_definitions(scythe
-  INTERFACE
-  SCYTHE_LAPACK
-  SCYTHE_DEBUG=0
-  HAVE_TRUNC
-)
-target_compile_features(scythe
-  INTERFACE
+target_compile_features(phaplo
+  PUBLIC
   cxx_std_11
 )
 
-add_subdirectory(lib)
-
-add_executable(predicthaplo
-  PredictHaplo_externAlign.cpp
-)
-target_link_libraries(predicthaplo
-  PRIVATE
-  scythe
-  phaplo
-)
+add_subdirectory(tests)
