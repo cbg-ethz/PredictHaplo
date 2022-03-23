@@ -19,7 +19,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: build
+    - name: test
       run: |
         cmake -DCMAKE_BUILD_TYPE=Release ${{ matrix.flags }} -B build -S . && \
-        cmake --build build
+        cmake --build build && \
+        cmake --build build --target test

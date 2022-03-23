@@ -16,6 +16,7 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 project(predicthaplo VERSION 2.1.4)
+enable_testing()
 
 find_package(LAPACK REQUIRED)
 
