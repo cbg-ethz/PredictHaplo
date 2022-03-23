@@ -7,20 +7,21 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: "ubuntu-latest"
-            flags: "-DPHAPLO_ENABLE_UNIT_TESTS=ON"
-          - os: "macOS-latest"
-            flags: ""
-
+  build-ubuntu:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: test
       run: |
-        cmake -DCMAKE_BUILD_TYPE=Release ${{ matrix.flags }} -B build -S . && \
+        sudo apt-get install -y libgtest-dev && \
+        cmake -DCMAKE_BUILD_TYPE=Release "-DPHAPLO_ENABLE_UNIT_TESTS=ON" -B build -S . && \
         cmake --build build && \
         cmake --build build --target test
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: build
+      run: |
+        cmake -DCMAKE_BUILD_TYPE=Release -B build -S . && \
+        cmake --build build
