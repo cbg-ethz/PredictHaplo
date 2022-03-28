@@ -48,3 +48,9 @@ Options:
   --include_deletions INT           Include deletions (0 = no, 1 = yes).
   --help                            Show this message and exit.
 ```
+
+## Tests
+
+This project comes with unit tests that are disabled by default.
+To enable these tests use the following flag when generating the build system: `-DPHAPLO_ENABLE_UNIT_TESTS:BOOL=ON`.
+Note that the [googletest](https://github.com/google/googletest) library is required and linked in this case.
