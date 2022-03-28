@@ -23,8 +23,7 @@
 namespace phaplo {
 /**
  * @brief Returns the median of the values in `v`.
- * @remark Returns NaN for an empty vector `v`.
- * @remark Reorders `v`.
+ * @remark Returns NaN for empty vectors `v`.
  */
 double median(std::vector<int> v) noexcept;
 } // namespace phaplo
