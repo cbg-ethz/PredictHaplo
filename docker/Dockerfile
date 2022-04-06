@@ -23,5 +23,6 @@ RUN apt-get update && \
     g\+\+ \
     gdb \
     git \
+    libgtest-dev \
     liblapack-dev && \
   apt-get clean

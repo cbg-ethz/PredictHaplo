@@ -15,38 +15,26 @@
 
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-project(predicthaplo VERSION 2.1.4)
-enable_testing()
+option(PHAPLO_ENABLE_UNIT_TESTS "enables unit tests (requires GTest library)" OFF)
 
-find_package(LAPACK REQUIRED)
+if (NOT PHAPLO_ENABLE_UNIT_TESTS)
+  return()
+endif()
 
-add_library(scythe INTERFACE)
-target_include_directories(scythe
-  INTERFACE
-  SCYTHE/include
-)
-target_link_libraries(scythe
-  INTERFACE
-  ${LAPACK_LIBRARIES}
-)
-target_compile_definitions(scythe
-  INTERFACE
-  SCYTHE_LAPACK
-  SCYTHE_DEBUG=0
-  HAVE_TRUNC
-)
-target_compile_features(scythe
-  INTERFACE
-  cxx_std_11
-)
+find_package(GTest 1.10 MODULE REQUIRED)
 
-add_subdirectory(lib)
-
-add_executable(predicthaplo
-  PredictHaplo_externAlign.cpp
+add_executable(
+  phaplo_Tests
+  median_Test.cpp
 )
-target_link_libraries(predicthaplo
+target_link_libraries(
+  phaplo_Tests
   PRIVATE
-  scythe
   phaplo
+  GTest::Main
+)
+
+include(GoogleTest)
+gtest_add_tests(
+  TARGET phaplo_Tests
 )

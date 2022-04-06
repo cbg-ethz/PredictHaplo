@@ -19,6 +19,7 @@
 // TODO: where does one actually get this definition from?
 #define R_finite(x) std::isfinite(x)
 
+#include "phaplo/median.hpp"
 #include "scythestat/distributions.h"
 #include "scythestat/ide.h"
 #include "scythestat/la.h"
@@ -2877,18 +2878,6 @@ int reconstruct_global(
   return 0;
 }
 
-// Could use pass by copy to avoid changing vector
-double median(std::vector<int> &v) {
-  size_t n = v.size() / 2;
-  std::nth_element(v.begin(), v.begin() + n, v.end());
-  if (v.size() % 2 == 1) {
-    return v[n];
-  } else {
-    std::nth_element(v.begin(), v.begin() + n - 1, v.end());
-    return 0.5 * (v[n] + v[n - 1]);
-  }
-}
-
 int main(int argc, char *argv[]) {
   qual_subtract = 33;
 
@@ -3206,8 +3195,7 @@ int main(int argc, char *argv[]) {
     si[i] = Reads[i].size();
   }
 
-  mean_length = median(si); // mean_length/Reads.size();
-
+  mean_length = phaplo::median(std::move(si)); // mean_length/Reads.size();
   si.clear();
 
   local_window_size = int(local_window_size_factor * mean_length);
