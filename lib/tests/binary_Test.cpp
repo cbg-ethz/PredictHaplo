@@ -19,21 +19,36 @@
 
 namespace phaplo {
 namespace {
-struct binary_Test : ::testing::Test {
-  std::stringstream stream;
-};
+struct binary_Test : ::testing::Test {};
 
-TEST_F(binary_Test, binary_of_0_is_0) { EXPECT_EQ(binary(0, stream), "0"); }
-
-TEST_F(binary_Test,
-       binary_of_negative_number_is_string_representation_of_number) {
-  EXPECT_EQ(binary(-1, stream), "-1");
+TEST_F(binary_Test, binary_of_0_is_only_unset_bits) {
+  EXPECT_FALSE(binary(0).any());
 }
 
 TEST_F(binary_Test,
        binary_of_positive_number_is_binary_representation_of_number) {
-  EXPECT_EQ(binary(6, stream), "110");
+  const auto result = binary(6);
+
+  ASSERT_GE(result.size(), 3);
+  EXPECT_EQ(result[0], false);
+  EXPECT_EQ(result[1], true);
+  EXPECT_EQ(result[2], true);
+
+  EXPECT_EQ(result, decltype(result)("110"));
 }
+
+TEST_F(binary_Test, highest_bit_returns_0_for_0) {
+  EXPECT_EQ(used_bits(binary(0)), 0);
+}
+
+TEST_F(binary_Test, highest_bit_returns_1_for_1) {
+  EXPECT_EQ(used_bits(binary(1)), 1);
+}
+
+TEST_F(binary_Test, highest_bit_returns_3_for_6) {
+  EXPECT_EQ(used_bits(binary(6)), 3);
+}
+
 
 } // namespace
 } // namespace phaplo

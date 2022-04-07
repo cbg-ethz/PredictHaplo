@@ -16,14 +16,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <sstream>
-#include <string>
+#include <bitset>
+#include <limits>
 
 namespace phaplo {
 
 /**
  * @brief Converts an integer to its binary representation.
  */
-std::string binary(int number, std::stringstream &strs);
+std::bitset<std::numeric_limits<unsigned int>::digits>
+binary(unsigned int number);
+
+/**
+ * @brief Returns the number of bits required to represent `bits`.
+ */
+std::size_t used_bits(std::bitset<std::numeric_limits<unsigned int>::digits> bits);
 
 } // namespace phaplo

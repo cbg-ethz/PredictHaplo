@@ -238,10 +238,8 @@ int parseSAMpaired(string al, double max_gap_fraction,
 
   int indels, indels_pairs;
 
-  string sRC_1, sRC_2, pairs_1, pairs_2;
-  bool part_1 = false, part_2 = false, is_pair = false;
+  bool part_1 = false, is_pair = false;
   string id, id_1;
-  int RC;
   mersenne myrng;
   while (getline(inf6, line, '\n')) {
 
@@ -252,33 +250,27 @@ int parseSAMpaired(string al, double max_gap_fraction,
     tot_counter++;
 
     tokens = tokenize(line, "\t");
-    RC = atoi(tokens[1].c_str());
+    const auto RC = static_cast<unsigned int>(atoi(tokens[1].c_str()));
     id = tokens[0];
 
-    stringstream strs;
-    string sRC = phaplo::binary(RC, strs);
-
-    int sz = sRC.size();
+    const auto sRC = phaplo::binary(RC);
+    const auto sz = phaplo::used_bits(sRC);
 
     if (sz > 8)
       continue;
 
-    if (sRC[sz - 3] == '1' || sRC[sz - 4] == '1')
+    if (sRC[sz - 3] || sRC[sz - 4])
       continue;
 
-    if (part_1 && id == id_1 && sz == 8 && sRC[0] == '1') {
+    if (part_1 && id == id_1 && sz == 8 && sRC[0]) {
       is_pair = true;
       part_1 = false;
-      pairs_2 = line;
-      sRC_2 = sRC;
 
       tokens_2 = tokens;
       pair_counter++;
     } else {
       part_1 = true;
       is_pair = false;
-      pairs_1 = line;
-      sRC_1 = sRC;
       id_1 = id;
       tokens_1 = tokens;
       singleton_counter++;
@@ -438,7 +430,6 @@ int parseSAM(string al, double max_gap_fraction,
 
   ifstream inf6(al.c_str(), ios::in);
 
-  int RC;
   while (getline(inf6, line, '\n')) {
 
     // cout << inf6 << ' '<< line << endl;
@@ -474,29 +465,17 @@ int parseSAM(string al, double max_gap_fraction,
           sub_length++;
       }
 
-      RC = atoi(tokens[1].c_str());
-      stringstream strs;
-      string sRC = phaplo::binary(RC, strs);
-      // cout << line<< endl;
-      // cout << sRC; cout << endl;
-
-      int sz = sRC.size();
+      auto RC = static_cast<unsigned int>(atoi(tokens[1].c_str()));
+      const auto sRC = phaplo::binary(RC);
+      const auto sz = phaplo::used_bits(sRC);
 
       if (sz > 8)
         continue;
 
-      if (sRC[sz - 3] == '1' || sRC[sz - 4] == '1')
+      if (sRC[sz - 3] || sRC[sz - 4])
         continue;
 
-      if (sRC[sz - 5] == 0) {
-        RC = 0;
-      }
-      if (sRC[sz - 5] == 1) {
-        RC = 16;
-      }
-
       if (RC == 0 || RC == 16) {
-
         string id = tokens[0];
 
         int qual = atoi(tokens[4].c_str());

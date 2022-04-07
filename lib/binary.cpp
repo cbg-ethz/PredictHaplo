@@ -19,18 +19,17 @@
 #include <phaplo/binary.hpp>
 
 namespace phaplo {
-std::string binary(int number, std::stringstream &strs) {
-  int remainder;
+std::bitset<std::numeric_limits<unsigned int>::digits>
+binary(unsigned int number) {
+  return std::bitset<std::numeric_limits<unsigned>::digits>(number);
+}
 
-  if (number <= 1) {
-    strs << number;
-    return strs.str();
+std::size_t
+used_bits(std::bitset<std::numeric_limits<unsigned int>::digits> bits) {
+  for (auto i = bits.size(); i > 0; --i) {
+    if (bits.test(i - 1)) return i;
   }
-
-  remainder = number % 2;
-  binary(number >> 1, strs);
-  strs << remainder;
-
-  return strs.str();
+  return 0;
 }
-}
+
+} // namespace phaplo
