@@ -22,6 +22,7 @@
 #include "phaplo/median.hpp"
 #include "phaplo/is_alignment_match.hpp"
 #include "phaplo/to_vector_of_ints.hpp"
+#include "phaplo/binary.hpp"
 #include "scythestat/distributions.h"
 #include "scythestat/ide.h"
 #include "scythestat/la.h"
@@ -55,21 +56,6 @@ bool myfunction(int i, int j) { return (i > j); }
 
 int visualization_level = 1;
 int local_window_size;
-
-string binary(int number, stringstream &strs) {
-  int remainder;
-
-  if (number <= 1) {
-    strs << number;
-    return strs.str();
-  }
-
-  remainder = number % 2;
-  binary(number >> 1, strs);
-  strs << remainder;
-
-  return strs.str();
-}
 
 vector<string> tokenize(const string &str, const string &delimiters) {
   vector<string> tokens;
@@ -270,7 +256,7 @@ int parseSAMpaired(string al, double max_gap_fraction,
     id = tokens[0];
 
     stringstream strs;
-    string sRC = binary(RC, strs);
+    string sRC = phaplo::binary(RC, strs);
 
     int sz = sRC.size();
 
@@ -490,7 +476,7 @@ int parseSAM(string al, double max_gap_fraction,
 
       RC = atoi(tokens[1].c_str());
       stringstream strs;
-      string sRC = binary(RC, strs);
+      string sRC = phaplo::binary(RC, strs);
       // cout << line<< endl;
       // cout << sRC; cout << endl;
 
