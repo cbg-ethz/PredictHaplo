@@ -40,6 +40,7 @@
 #include <sstream>
 #include <algorithm>
 #include <random>
+#include <unordered_map>
 
 using namespace scythe;
 using namespace std;
@@ -220,15 +221,11 @@ int parseSAMpaired(string al, double max_gap_fraction,
                    vector<int> &strand, vector<vector<int>> &Reads,
                    vector<int> &Positions_Start, vector<string> &IDs) {
 
-  string line, line_stats, line_ID;
-  string tok = ":";
-  vector<string> tokens, tokens2, tokens_as, tokens_pairs, tokens_1, tokens_2;
+  string line;
 
   have_quality_scores = true;
 
   ifstream inf6(al.c_str(), ios::in);
-
-  int pair_counter = 0, seq_counter = 0, tot_counter = 0, singleton_counter = 0;
 
   vector<int> seq_b, seq_b_pairs;
   string used_qual, used_qual_pairs;
@@ -238,45 +235,34 @@ int parseSAMpaired(string al, double max_gap_fraction,
 
   int indels, indels_pairs;
 
-  bool part_1 = false, is_pair = false;
-  string id, id_1;
-  mersenne myrng;
+  std::unordered_map<std::string, std::vector<std::string>> candidates;
   while (getline(inf6, line, '\n')) {
 
     if (line[0] == '@') {
       continue;
     }
 
-    tot_counter++;
-
-    tokens = tokenize(line, "\t");
+    const auto tokens = tokenize(line, "\t");
     const auto RC = static_cast<unsigned int>(atoi(tokens[1].c_str()));
-    id = tokens[0];
+    const auto id = tokens[0];
 
     const auto sRC = phaplo::binary(RC);
-    const auto sz = phaplo::used_bits(sRC);
 
-    if (sz > 8)
+    if (phaplo::used_bits(sRC) > 8)
       continue;
 
-    if (sRC[sz - 3] || sRC[sz - 4])
+    const auto is_unmapped = bool{sRC[2] || sRC[3]};
+    const auto is_paired_read = sRC[0];
+
+    if (is_unmapped || !is_paired_read)
       continue;
 
-    if (part_1 && id == id_1 && sz == 8 && sRC[0]) {
-      is_pair = true;
-      part_1 = false;
+    const auto found = candidates.find(id);
 
-      tokens_2 = tokens;
-      pair_counter++;
-    } else {
-      part_1 = true;
-      is_pair = false;
-      id_1 = id;
-      tokens_1 = tokens;
-      singleton_counter++;
-    }
-
-    if (is_pair) {
+    if (found != candidates.end()) {
+      const auto is_read1 = bool{sRC[6]};
+      const auto &tokens_1 = is_read1 ? tokens : found->second;
+      const auto &tokens_2 = !is_read1 ? tokens : found->second;
 
       parse_sam_line(tokens_1, used_qual, seq_b, a_score, gap_quality, indels,
                      have_quality_scores, al_start);
@@ -369,9 +355,6 @@ int parseSAMpaired(string al, double max_gap_fraction,
           }
         }
 
-        // double unif = myrng.runif();
-
-        // if(unif < 1 && (!is_gap || Nlength < 100)){
         if (!is_gap || Nlength < 200) {
           Positions_Start.push_back(StartPos);
           Reads.push_back(SEQ_combined);
@@ -382,17 +365,6 @@ int parseSAMpaired(string al, double max_gap_fraction,
 
           quality_scores.push_back(Qscores);
           strand.push_back(RC);
-          seq_counter++;
-
-          /* of_start<<  al_start <<'\t' <<  al_start_pairs << '\t'<< fabs(
-          al_start_pairs-  al_start) << endl;
-
-          if(  al_start +seq_b.size() > max_sequence_length)
-            max_sequence_length =  al_start +seq_b.size();
-
-          if(al_start < min_seq_start)
-            min_seq_start = al_start;
-          */
 
           if (al_start + seq_b.size() > max_sequence_stop)
             max_sequence_stop = al_start + seq_b.size();
@@ -407,6 +379,9 @@ int parseSAMpaired(string al, double max_gap_fraction,
             max_seq_start = al_start;
         }
       }
+      candidates.erase(found);
+    } else {
+      candidates[id] = tokens;
     }
   }
 
