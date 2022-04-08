@@ -23,7 +23,7 @@ namespace phaplo {
 
 std::vector<int> to_vector_of_ints(const std::string &in) {
   auto r = std::vector<int>(in.size());
-  std::transform(in.begin(), in.end(), r.begin(), [](const auto c) {
+  std::transform(in.begin(), in.end(), r.begin(), [](const char c) {
     return c - '0';
   });
   return r;
