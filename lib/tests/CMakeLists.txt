@@ -26,6 +26,7 @@ find_package(GTest 1.10 MODULE REQUIRED)
 add_executable(
   phaplo_Tests
   median_Test.cpp
+  to_vector_of_ints_Test.cpp
 )
 target_link_libraries(
   phaplo_Tests

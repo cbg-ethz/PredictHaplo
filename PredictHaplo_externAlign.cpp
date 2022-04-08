@@ -20,6 +20,7 @@
 #define R_finite(x) std::isfinite(x)
 
 #include "phaplo/median.hpp"
+#include "phaplo/to_vector_of_ints.hpp"
 #include "scythestat/distributions.h"
 #include "scythestat/ide.h"
 #include "scythestat/la.h"
@@ -3359,17 +3360,10 @@ int main(int argc, char *argv[]) {
         haplo_max_start = atoi(tokens[0].c_str());
       }
 
-      vector<int> r;
-      char c[1];
-      for (int i = 0; i < tokens[1].size(); i++) {
-        c[0] = tokens[1].at(i);
-        r.push_back(atoi(c));
-      }
+      trueHaplos.push_back(phaplo::to_vector_of_ints(tokens[1]));
 
-      trueHaplos.push_back(r);
-
-      if (r.size() < haplo_min_stop)
-        haplo_min_stop = atoi(tokens[0].c_str()) + r.size();
+      if (tokens[1].size() < haplo_min_stop)
+        haplo_min_stop = atoi(tokens[0].c_str()) + tokens[1].size();
     }
 
     inf4.close();
