@@ -35,6 +35,8 @@
 #include <getopt.h>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
+#include <random>
 
 using namespace scythe;
 using namespace std;
@@ -1742,7 +1744,7 @@ int local_Analysis(
       v[k] = reads_in_window[k];
     }
 
-    random_shuffle(v.begin(), v.end());
+    std::shuffle(v.begin(), v.end(), std::mt19937{std::random_device{}()});
 
     int number_of_reads_in_window = reads_in_window.size();
 
