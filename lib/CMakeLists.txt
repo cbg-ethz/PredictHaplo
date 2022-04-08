@@ -17,6 +17,7 @@ cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 add_library(phaplo
   median.cpp
+  is_alignment_match.cpp
 )
 target_include_directories(phaplo
   PUBLIC
