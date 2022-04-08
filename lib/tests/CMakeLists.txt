@@ -27,6 +27,7 @@ add_executable(
   phaplo_Tests
   median_Test.cpp
   is_alignment_match_Test.cpp
+  to_vector_of_ints_Test.cpp
 )
 target_link_libraries(
   phaplo_Tests
