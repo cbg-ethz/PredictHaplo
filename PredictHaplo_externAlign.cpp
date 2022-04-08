@@ -20,6 +20,7 @@
 #define R_finite(x) std::isfinite(x)
 
 #include "phaplo/median.hpp"
+#include "phaplo/is_alignment_match.hpp"
 #include "scythestat/distributions.h"
 #include "scythestat/ide.h"
 #include "scythestat/la.h"
@@ -171,7 +172,7 @@ int parse_sam_line(const vector<string> &tokens, string &used_qual,
         c++;
       }
 
-    if (symbols[i] == 'M')
+    if (phaplo::is_alignment_match(symbols[i]))
       for (int j = 0; j < sub_length_vec[i]; j++) {
         int k = 0;
         if (tokens[9][c] == 'A' || tokens[9][c] == 'a')
@@ -530,7 +531,7 @@ int parseSAM(string al, double max_gap_fraction,
               c++;
             }
 
-          if (symbols[i] == 'M')
+          if (phaplo::is_alignment_match(symbols[i]))
             for (int j = 0; j < sub_length_vec[i]; j++) {
               int k = 0;
               if (tokens[9][c] == 'A' || tokens[9][c] == 'a')
