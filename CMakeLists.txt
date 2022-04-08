@@ -50,3 +50,7 @@ target_link_libraries(predicthaplo
   scythe
   phaplo
 )
+target_compile_features(predicthaplo
+  PRIVATE
+  cxx_std_17
+)
