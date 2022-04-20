@@ -37,15 +37,15 @@ TEST_F(binary_Test,
   EXPECT_EQ(result, decltype(result)("110"));
 }
 
-TEST_F(binary_Test, highest_bit_returns_0_for_0) {
+TEST_F(binary_Test, used_bits_returns_0_for_0) {
   EXPECT_EQ(used_bits(binary(0)), 0);
 }
 
-TEST_F(binary_Test, highest_bit_returns_1_for_1) {
+TEST_F(binary_Test, used_bits_returns_1_for_1) {
   EXPECT_EQ(used_bits(binary(1)), 1);
 }
 
-TEST_F(binary_Test, highest_bit_returns_3_for_6) {
+TEST_F(binary_Test, used_bits_returns_3_for_6) {
   EXPECT_EQ(used_bits(binary(6)), 3);
 }
 
