@@ -30,6 +30,8 @@ std::string message(const ErrorCode code) noexcept {
     return "No valid reads were discovered.";
   case ErrorCode::parse_sam_failed:
     return "Parsing the SAM file failed.";
+  case ErrorCode::no_reference_file:
+    return "Please provide the path to the reference sequence file via \"--reference\".";
   case ErrorCode::unknown:
     return "An unspecified error occured.";
   }

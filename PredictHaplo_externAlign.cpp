@@ -3069,8 +3069,7 @@ int main(int argc, char *argv[]) {
       throw phaplo::Error(phaplo::ErrorCode::no_sam_file);
     }
     if (cons == "") {
-      cout << "No reference (--reference) specified" << endl;
-      return 1;
+      throw phaplo::Error(phaplo::ErrorCode::no_reference_file);
     }
 
     cout << "Configuration:\n"

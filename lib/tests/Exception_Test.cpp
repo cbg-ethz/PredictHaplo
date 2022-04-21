@@ -78,5 +78,16 @@ TEST_F(Exception_Test, parse_sam_failed_has_message_informing_user) {
   EXPECT_STREQ(error.what(), "Parsing the SAM file failed.");
 }
 
+TEST_F(Exception_Test, no_reference_file_error_has_id_6) {
+  const auto error = Error(ErrorCode::no_reference_file);
+  EXPECT_EQ(error.id(), 6);
+}
+
+TEST_F(Exception_Test, no_reference_file_has_message_informing_user) {
+  const auto error = Error(ErrorCode::no_reference_file);
+  EXPECT_STREQ(error.what(), "Please provide the path to the reference "
+                             "sequence file via \"--reference\".");
+}
+
 } // namespace
 } // namespace phaplo
