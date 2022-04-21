@@ -37,6 +37,8 @@ std::string message(const ErrorCode code) noexcept {
            "\"--reference\".";
   case ErrorCode::unsupported_flag:
     return "An unsupported command line flag was provided.";
+  case ErrorCode::no_maximum_cluster_number_window:
+    return "Determining the window with maximum cluster number failed.";
   }
 
   return message(ErrorCode::unknown);

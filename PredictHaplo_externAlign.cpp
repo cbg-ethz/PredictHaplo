@@ -3585,8 +3585,7 @@ int main(int argc, char *argv[]) {
     inS.close();
 
     if (max_clusters < 0) {
-      cout << "Could not find window with maximum cluster number." << endl;
-      return 1;
+      throw phaplo::Error(phaplo::ErrorCode::no_maximum_cluster_number_window);
     }
 
     double min_d = 1e100;

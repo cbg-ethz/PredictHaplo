@@ -37,6 +37,7 @@ enum class ErrorCode : int {
   parse_sam_failed,
   no_reference_file,
   unsupported_flag,
+  no_maximum_cluster_number_window,
 };
 
 /**

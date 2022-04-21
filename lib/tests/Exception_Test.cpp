@@ -99,5 +99,17 @@ TEST_F(Exception_Test, unsupported_flag_has_message_informing_user) {
   EXPECT_STREQ(error.what(), "An unsupported command line flag was provided.");
 }
 
+TEST_F(Exception_Test, no_maximum_cluster_number_window_error_has_id_8) {
+  const auto error = Error(ErrorCode::no_maximum_cluster_number_window);
+  EXPECT_EQ(error.id(), 8);
+}
+
+TEST_F(Exception_Test,
+       no_maximum_cluster_number_window_has_message_informing_user) {
+  const auto error = Error(ErrorCode::no_maximum_cluster_number_window);
+  EXPECT_STREQ(error.what(),
+               "Determining the window with maximum cluster number failed.");
+}
+
 } // namespace
 } // namespace phaplo
