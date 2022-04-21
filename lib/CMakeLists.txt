@@ -27,7 +27,7 @@ target_include_directories(phaplo
 )
 target_compile_features(phaplo
   PUBLIC
-  cxx_std_11
+  cxx_std_17
 )
 
 add_subdirectory(tests)
