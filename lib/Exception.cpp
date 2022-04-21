@@ -15,6 +15,7 @@
 
 #include <phaplo/Exception.hpp>
 #include <type_traits>
+#include <string>
 
 namespace phaplo {
 
