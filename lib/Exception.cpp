@@ -14,6 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <phaplo/Exception.hpp>
+#include <type_traits>
 
 namespace phaplo {
 
