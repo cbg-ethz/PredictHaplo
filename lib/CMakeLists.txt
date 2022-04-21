@@ -20,6 +20,7 @@ add_library(phaplo
   is_alignment_match.cpp
   to_vector_of_ints.cpp
   binary.cpp
+  Exception.cpp
 )
 target_include_directories(phaplo
   PUBLIC
@@ -27,7 +28,7 @@ target_include_directories(phaplo
 )
 target_compile_features(phaplo
   PUBLIC
-  cxx_std_11
+  cxx_std_17
 )
 
 add_subdirectory(tests)
