@@ -14,14 +14,16 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <phaplo/Exception.hpp>
-#include <type_traits>
 #include <string>
+#include <type_traits>
 
 namespace phaplo {
 
 namespace {
 std::string message(const ErrorCode code) noexcept {
   switch (code) {
+  case ErrorCode::unknown:
+    return "An unspecified error occured.";
   case ErrorCode::no_sam_file:
     return "Please provide the path to the SAM file via \"--sam\".";
   case ErrorCode::multiple_sam_files:
@@ -31,9 +33,10 @@ std::string message(const ErrorCode code) noexcept {
   case ErrorCode::parse_sam_failed:
     return "Parsing the SAM file failed.";
   case ErrorCode::no_reference_file:
-    return "Please provide the path to the reference sequence file via \"--reference\".";
-  case ErrorCode::unknown:
-    return "An unspecified error occured.";
+    return "Please provide the path to the reference sequence file via "
+           "\"--reference\".";
+  case ErrorCode::unsupported_flag:
+    return "An unsupported command line flag was provided.";
   }
 
   return message(ErrorCode::unknown);

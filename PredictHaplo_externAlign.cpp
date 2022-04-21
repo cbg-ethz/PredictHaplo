@@ -2958,7 +2958,7 @@ int main(int argc, char *argv[]) {
     int longindex = -1;
     while ((ch = getopt_long(argc, argv, "", longopts, &longindex)) != -1) {
       if (ch == '?') {
-        return 1;
+        throw phaplo::Error(phaplo::ErrorCode::unsupported_flag);
       }
 
       string choice = longopts[longindex].name;
@@ -3061,7 +3061,7 @@ int main(int argc, char *argv[]) {
              << endl;
         return 0;
       } else {
-        return 1;
+        throw phaplo::Error(phaplo::ErrorCode::unsupported_flag);
       }
     }
 
@@ -3175,11 +3175,11 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    parseSAMpaired(
-        FASTAreads[0], max_gap_fraction, min_align_score_fraction, min_qual,
-        min_length, gap_quality, mean_length, min_seq_start, max_seq_start,
-        max_sequence_stop, min_sequence_stop, have_quality_scores,
-        quality_scores, strand, Reads, Positions_Start, IDs);
+    parseSAMpaired(FASTAreads[0], max_gap_fraction, min_align_score_fraction,
+                   min_qual, min_length, gap_quality, mean_length,
+                   min_seq_start, max_seq_start, max_sequence_stop,
+                   min_sequence_stop, have_quality_scores, quality_scores,
+                   strand, Reads, Positions_Start, IDs);
 
     cout << "After parsing the reads in file " << FASTAreads[0]
          << ": average read length= " << mean_length / Reads.size() << ' '

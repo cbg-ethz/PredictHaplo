@@ -89,5 +89,15 @@ TEST_F(Exception_Test, no_reference_file_has_message_informing_user) {
                              "sequence file via \"--reference\".");
 }
 
+TEST_F(Exception_Test, unsupported_flag_error_has_id_7) {
+  const auto error = Error(ErrorCode::unsupported_flag);
+  EXPECT_EQ(error.id(), 7);
+}
+
+TEST_F(Exception_Test, unsupported_flag_has_message_informing_user) {
+  const auto error = Error(ErrorCode::unsupported_flag);
+  EXPECT_STREQ(error.what(), "An unsupported command line flag was provided.");
+}
+
 } // namespace
 } // namespace phaplo

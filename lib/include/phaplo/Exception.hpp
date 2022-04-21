@@ -36,6 +36,7 @@ enum class ErrorCode : int {
   no_valid_reads,
   parse_sam_failed,
   no_reference_file,
+  unsupported_flag,
 };
 
 /**
