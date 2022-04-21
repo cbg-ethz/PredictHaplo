@@ -2905,6 +2905,10 @@ int main(int argc, char *argv[]) {
                    min_sequence_stop, have_quality_scores, quality_scores,
                    strand, Reads, Positions_Start, IDs);
 
+    if (Reads.empty()) {
+      throw phaplo::Error(phaplo::ErrorCode::no_valid_reads);
+    }
+
     cout << "After parsing the reads in file " << FASTAreads.value()
          << ": average read length= " << mean_length / Reads.size() << ' '
          << Reads.size() << endl;
