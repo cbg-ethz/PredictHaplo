@@ -19,8 +19,9 @@
 // TODO: where does one actually get this definition from?
 #define R_finite(x) std::isfinite(x)
 
-#include "phaplo/median.hpp"
+#include "phaplo/Exception.hpp"
 #include "phaplo/is_alignment_match.hpp"
+#include "phaplo/median.hpp"
 #include "phaplo/to_vector_of_ints.hpp"
 #include "scythestat/distributions.h"
 #include "scythestat/ide.h"
@@ -32,13 +33,13 @@
 #include "scythestat/rng/mersenne.h"
 #include "scythestat/smath.h"
 #include "scythestat/stat.h"
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
-#include <sstream>
-#include <algorithm>
 #include <random>
+#include <sstream>
 
 using namespace scythe;
 using namespace std;
@@ -225,14 +226,14 @@ int parse_sam_line(const vector<string> &tokens, string &used_qual,
   return 0;
 }
 
-int parseSAMpaired(string al, double max_gap_fraction,
-                   double min_align_score_fraction, double min_qual,
-                   int min_length, char gap_quality, double &mean_length,
-                   int &min_seq_start, int &max_seq_start,
-                   int &max_sequence_stop, int &min_sequence_stop,
-                   bool &have_quality_scores, vector<string> &quality_scores,
-                   vector<int> &strand, vector<vector<int>> &Reads,
-                   vector<int> &Positions_Start, vector<string> &IDs) {
+void parseSAMpaired(string al, double max_gap_fraction,
+                    double min_align_score_fraction, double min_qual,
+                    int min_length, char gap_quality, double &mean_length,
+                    int &min_seq_start, int &max_seq_start,
+                    int &max_sequence_stop, int &min_sequence_stop,
+                    bool &have_quality_scores, vector<string> &quality_scores,
+                    vector<int> &strand, vector<vector<int>> &Reads,
+                    vector<int> &Positions_Start, vector<string> &IDs) {
 
   string line, line_stats, line_ID;
   string tok = ":";
@@ -431,18 +432,19 @@ int parseSAMpaired(string al, double max_gap_fraction,
       }
     }
   }
-
-  // of_start.close();
-  return 0;
 }
 
-int parseSAM(string al, double max_gap_fraction,
-             double min_align_score_fraction, double min_qual, int min_length,
-             char gap_quality, double &mean_length, int &min_seq_start,
-             int &max_seq_start, int &max_sequence_stop, int &min_sequence_stop,
-             bool &have_quality_scores, vector<string> &quality_scores,
-             vector<int> &strand, vector<vector<int>> &Reads,
-             vector<int> &Positions_Start, vector<string> &IDs) {
+/**
+ * @throw phaplo::Error
+ */
+void parseSAM(string al, double max_gap_fraction,
+              double min_align_score_fraction, double min_qual, int min_length,
+              char gap_quality, double &mean_length, int &min_seq_start,
+              int &max_seq_start, int &max_sequence_stop,
+              int &min_sequence_stop, bool &have_quality_scores,
+              vector<string> &quality_scores, vector<int> &strand,
+              vector<vector<int>> &Reads, vector<int> &Positions_Start,
+              vector<string> &IDs) {
 
   string line, line_stats, line_ID;
   string tok = ":";
@@ -462,8 +464,7 @@ int parseSAM(string al, double max_gap_fraction,
     tokens = tokenize(line, "\t");
 
     if (tokens.size() < 5) {
-      cout << "Problem with sam file..." << endl;
-      return 1;
+      throw phaplo::Error(phaplo::ErrorCode::parse_sam_failed);
     }
 
     if (tokens[5] != "*") {
@@ -649,9 +650,6 @@ int parseSAM(string al, double max_gap_fraction,
       }
     }
   }
-
-  // mean_length /= Reads.size();
-  return 0;
 }
 
 int MultiNomialDPMReadsSemiEntropy(
@@ -2883,726 +2881,736 @@ int reconstruct_global(
 }
 
 int main(int argc, char *argv[]) {
-  qual_subtract = 33;
+  try {
+    qual_subtract = 33;
 
-  srand(time(NULL));
+    srand(time(NULL));
 
-  string prefix = "predicthaplo_output/ph_";
-  string cons;
+    string prefix = "predicthaplo_output/ph_";
+    string cons;
 
-  vector<string> FASTAreads;
-  bool have_true_haplotypes = true;
-  string FASTAhaplos;
+    vector<string> FASTAreads;
+    bool have_true_haplotypes = true;
+    string FASTAhaplos;
 
-  bool do_local_Analysis = true;
-  double entropy_threshold = 4e-2;
-  double entropy_fraction = 0.25;
+    bool do_local_Analysis = true;
+    double entropy_threshold = 4e-2;
+    double entropy_fraction = 0.25;
 
-  string line, line_stats, line_ID;
-  string tok = ":";
-  vector<string> tokens, tokens2, tokens_as;
-  int max_reads_in_window = 10000;
+    string line, line_stats, line_ID;
+    string tok = ":";
+    vector<string> tokens, tokens2, tokens_as;
+    int max_reads_in_window = 10000;
 
-  string prefix_extension = "";
+    string prefix_extension = "";
 
-  int reconstruction_start, reconstruction_stop;
-  double alpha_MN_local =
-      25; // prior parameter for multinomial tables over the nucleotides
-  double max_gap_fraction = 0.05;         // relative to alignment length
-  double min_align_score_fraction = 0.35; // relative to read length
+    int reconstruction_start, reconstruction_stop;
+    double alpha_MN_local =
+        25; // prior parameter for multinomial tables over the nucleotides
+    double max_gap_fraction = 0.05;         // relative to alignment length
+    double min_align_score_fraction = 0.35; // relative to read length
 
-  double min_qual = 30;
-  int min_length = 220;
+    double min_qual = 30;
+    int min_length = 220;
 
-  double min_overlap_factor =
-      0.85; // reads must have an overlap with the local reconstruction window
-            // of at least this factor times the window size
-  double local_window_size_factor =
-      0.7; // size of  local reconstruction window relative to the median of the
-           // read lengths
+    double min_overlap_factor =
+        0.85; // reads must have an overlap with the local reconstruction window
+              // of at least this factor times the window size
+    double local_window_size_factor =
+        0.7; // size of  local reconstruction window relative to the median of
+             // the read lengths
 
-  double mismatch = 3.0, gap_open = 7.0, gap_extension = 3.0;
-  int K = 25; // max number of clusters (in the truncated Dirichlet process)
-  int nSample = 501; // MCMC iterations
+    double mismatch = 3.0, gap_open = 7.0, gap_extension = 3.0;
+    int K = 25; // max number of clusters (in the truncated Dirichlet process)
+    int nSample = 501; // MCMC iterations
 
-  vector<vector<string>> arg_buffer;
-  int count = 0;
-  vector<string> arg_buffer_sub;
+    vector<vector<string>> arg_buffer;
+    int count = 0;
+    vector<string> arg_buffer_sub;
 
-  // commandline interface
-  static struct option longopts[] = {
-      {"prefix", required_argument, NULL, 0},
-      {"reference", required_argument, NULL, 0},
-      {"visualization_level", required_argument, NULL, 0},
-      {"sam", required_argument, NULL, 0},
-      {"have_true_haplotypes", required_argument, NULL, 0},
-      {"true_haplotypes", required_argument, NULL, 0},
-      {"do_local_Analysis", required_argument, NULL, 0},
-      {"max_reads_in_window", required_argument, NULL, 0},
-      {"entropy_threshold", required_argument, NULL, 0},
-      {"reconstruction_start", required_argument, NULL, 0},
-      {"reconstruction_stop", required_argument, NULL, 0},
-      {"min_qual", required_argument, NULL, 0},
-      {"min_length", required_argument, NULL, 0},
-      {"max_gap_fraction", required_argument, NULL, 0},
-      {"min_align_score_fraction", required_argument, NULL, 0},
-      {"alpha_MN_local", required_argument, NULL, 0},
-      {"min_overlap_factor", required_argument, NULL, 0},
-      {"local_window_size_factor", required_argument, NULL, 0},
-      {"cluster_number", required_argument, NULL, 0},
-      {"nSample", required_argument, NULL, 0},
-      {"include_deletions", required_argument, NULL, 0},
-      {"help", no_argument, NULL, 0},
-      {NULL, 0, NULL, 0}};
+    // commandline interface
+    static struct option longopts[] = {
+        {"prefix", required_argument, NULL, 0},
+        {"reference", required_argument, NULL, 0},
+        {"visualization_level", required_argument, NULL, 0},
+        {"sam", required_argument, NULL, 0},
+        {"have_true_haplotypes", required_argument, NULL, 0},
+        {"true_haplotypes", required_argument, NULL, 0},
+        {"do_local_Analysis", required_argument, NULL, 0},
+        {"max_reads_in_window", required_argument, NULL, 0},
+        {"entropy_threshold", required_argument, NULL, 0},
+        {"reconstruction_start", required_argument, NULL, 0},
+        {"reconstruction_stop", required_argument, NULL, 0},
+        {"min_qual", required_argument, NULL, 0},
+        {"min_length", required_argument, NULL, 0},
+        {"max_gap_fraction", required_argument, NULL, 0},
+        {"min_align_score_fraction", required_argument, NULL, 0},
+        {"alpha_MN_local", required_argument, NULL, 0},
+        {"min_overlap_factor", required_argument, NULL, 0},
+        {"local_window_size_factor", required_argument, NULL, 0},
+        {"cluster_number", required_argument, NULL, 0},
+        {"nSample", required_argument, NULL, 0},
+        {"include_deletions", required_argument, NULL, 0},
+        {"help", no_argument, NULL, 0},
+        {NULL, 0, NULL, 0}};
 
-  int ch;
-  int longindex = -1;
-  while ((ch = getopt_long(argc, argv, "", longopts, &longindex)) != -1) {
-    if (ch == '?') {
-      return 1;
+    int ch;
+    int longindex = -1;
+    while ((ch = getopt_long(argc, argv, "", longopts, &longindex)) != -1) {
+      if (ch == '?') {
+        throw phaplo::Error(phaplo::ErrorCode::unsupported_flag);
+      }
+
+      string choice = longopts[longindex].name;
+      if (choice == "prefix") {
+        prefix = optarg;
+      } else if (choice == "reference") {
+        cons = optarg;
+      } else if (choice == "visualization_level") {
+        visualization_level = atoi(optarg);
+      } else if (choice == "sam") {
+        // TODO: also allow multiple read files
+        FASTAreads.push_back(optarg);
+      } else if (choice == "have_true_haplotypes") {
+        have_true_haplotypes = atoi(optarg);
+      } else if (choice == "true_haplotypes") {
+        FASTAhaplos = optarg;
+      } else if (choice == "do_local_Analysis") {
+        do_local_Analysis = atoi(optarg);
+      } else if (choice == "max_reads_in_window") {
+        max_reads_in_window = atoi(optarg);
+      } else if (choice == "entropy_threshold") {
+        entropy_threshold = atof(optarg);
+      } else if (choice == "reconstruction_start") {
+        reconstruction_start = atoi(optarg);
+      } else if (choice == "reconstruction_stop") {
+        reconstruction_stop = atoi(optarg);
+      } else if (choice == "min_qual") {
+        min_qual = atoi(optarg);
+      } else if (choice == "min_length") {
+        min_length = atoi(optarg);
+      } else if (choice == "max_gap_fraction") {
+        max_gap_fraction = atof(optarg);
+      } else if (choice == "min_align_score_fraction") {
+        min_align_score_fraction = atof(optarg);
+      } else if (choice == "alpha_MN_local") {
+        alpha_MN_local = atof(optarg);
+      } else if (choice == "min_overlap_factor") {
+        min_overlap_factor = atof(optarg);
+      } else if (choice == "local_window_size_factor") {
+        local_window_size_factor = atof(optarg);
+      } else if (choice == "cluster_number") {
+        K = atoi(optarg);
+      } else if (choice == "nSample") {
+        nSample = atoi(optarg);
+      } else if (choice == "include_deletions") {
+        include_deletions = atoi(optarg);
+      } else if (choice == "help") {
+        cout << "Usage: " << argv[0] << " [OPTIONS]\n"
+             << "\n"
+             << "  This software aims at reconstructing haplotypes from "
+                "next-generation sequencing data.\n"
+             << "\n"
+             << "Options:\n"
+             << "  --sam FILE                        Filename of the aligned "
+                "reads "
+                "(sam format).\n"
+             << "  --reference FILE                  Filename of reference "
+                "sequence "
+                "(FASTA).\n"
+             << "  --prefix STR                      Prefix of output files.\n"
+             << "  --visualization_level INT         do_visualize (1 = true, 0 "
+                "= "
+                "false).\n"
+             << "  --have_true_haplotypes INT        have_true_haplotypes (1 = "
+                "true, 0 "
+                "= false).\n"
+             << "  --true_haplotypes FILE            Filename of the true "
+                "haplotypes "
+                "(MSA in "
+                "FASTA format) (fill in any dummy filename if there is no "
+                "\"true\" haplotypes).\n"
+             << "  --do_local_Analysis INT           do_local_analysis (1 = "
+                "true, 0 = "
+                "false) "
+                "(must be 1 in the first run).\n"
+             << "  --max_reads_in_window INT         ...\n"
+             << "  --entropy_threshold FLOAT         ...\n"
+             << "  --reconstruction_start INT        ...\n"
+             << "  --reconstruction_stop INT         ...\n"
+             << "  --min_qual INT                    ...\n"
+             << "  --min_length INT                  ...\n"
+             << "  --max_gap_fraction FLOAT          Relative to alignment "
+                "length.\n"
+             << "  --min_align_score_fraction FLOAT  Relative to read length.\n"
+             << "  --alpha_MN_local FLOAT            Prior parameter for "
+                "multinomial tables over the nucleotides.\n"
+             << "  --min_overlap_factor FLOAT        Reads must have an "
+                "overlap with the local reconstruction window of at least this "
+                "factor times the window size.\n"
+             << "  --local_window_size_factor FLOAT  Size of  local "
+                "reconstruction window relative to the median of the read "
+                "lengths.\n"
+             << "  --cluster_number INT              Max number of clusters "
+                "(in the truncated Dirichlet process).\n"
+             << "  --nSample INT                     MCMC iterations.\n"
+             << "  --include_deletions INT           Include deletions (0 = "
+                "no, 1 = yes).\n"
+             << "  --help                            Show this message and "
+                "exit.\n"
+             << endl;
+        return 0;
+      } else {
+        throw phaplo::Error(phaplo::ErrorCode::unsupported_flag);
+      }
     }
 
-    string choice = longopts[longindex].name;
-    if (choice == "prefix") {
-      prefix = optarg;
-    } else if (choice == "reference") {
-      cons = optarg;
-    } else if (choice == "visualization_level") {
-      visualization_level = atoi(optarg);
-    } else if (choice == "sam") {
-      // TODO: also allow multiple read files
-      FASTAreads.push_back(optarg);
-    } else if (choice == "have_true_haplotypes") {
-      have_true_haplotypes = atoi(optarg);
-    } else if (choice == "true_haplotypes") {
-      FASTAhaplos = optarg;
-    } else if (choice == "do_local_Analysis") {
-      do_local_Analysis = atoi(optarg);
-    } else if (choice == "max_reads_in_window") {
-      max_reads_in_window = atoi(optarg);
-    } else if (choice == "entropy_threshold") {
-      entropy_threshold = atof(optarg);
-    } else if (choice == "reconstruction_start") {
-      reconstruction_start = atoi(optarg);
-    } else if (choice == "reconstruction_stop") {
-      reconstruction_stop = atoi(optarg);
-    } else if (choice == "min_qual") {
-      min_qual = atoi(optarg);
-    } else if (choice == "min_length") {
-      min_length = atoi(optarg);
-    } else if (choice == "max_gap_fraction") {
-      max_gap_fraction = atof(optarg);
-    } else if (choice == "min_align_score_fraction") {
-      min_align_score_fraction = atof(optarg);
-    } else if (choice == "alpha_MN_local") {
-      alpha_MN_local = atof(optarg);
-    } else if (choice == "min_overlap_factor") {
-      min_overlap_factor = atof(optarg);
-    } else if (choice == "local_window_size_factor") {
-      local_window_size_factor = atof(optarg);
-    } else if (choice == "cluster_number") {
-      K = atoi(optarg);
-    } else if (choice == "nSample") {
-      nSample = atoi(optarg);
-    } else if (choice == "include_deletions") {
-      include_deletions = atoi(optarg);
-    } else if (choice == "help") {
-      cout << "Usage: " << argv[0] << " [OPTIONS]\n"
-           << "\n"
-           << "  This software aims at reconstructing haplotypes from "
-              "next-generation sequencing data.\n"
-           << "\n"
-           << "Options:\n"
-           << "  --sam FILE                        Filename of the aligned reads "
-              "(sam format).\n"
-           << "  --reference FILE                  Filename of reference sequence "
-              "(FASTA).\n"
-           << "  --prefix STR                      Prefix of output files.\n"
-           << "  --visualization_level INT         do_visualize (1 = true, 0 = "
-              "false).\n"
-           << "  --have_true_haplotypes INT        have_true_haplotypes (1 = true, 0 "
-              "= false).\n"
-           << "  --true_haplotypes FILE            Filename of the true haplotypes "
-              "(MSA in "
-              "FASTA format) (fill in any dummy filename if there is no "
-              "\"true\" haplotypes).\n"
-           << "  --do_local_Analysis INT           do_local_analysis (1 = true, 0 = "
-              "false) "
-              "(must be 1 in the first run).\n"
-           << "  --max_reads_in_window INT         ...\n"
-           << "  --entropy_threshold FLOAT         ...\n"
-           << "  --reconstruction_start INT        ...\n"
-           << "  --reconstruction_stop INT         ...\n"
-           << "  --min_qual INT                    ...\n"
-           << "  --min_length INT                  ...\n"
-           << "  --max_gap_fraction FLOAT          Relative to alignment length.\n"
-           << "  --min_align_score_fraction FLOAT  Relative to read length.\n"
-           << "  --alpha_MN_local FLOAT            Prior parameter for multinomial tables over the nucleotides.\n"
-           << "  --min_overlap_factor FLOAT        Reads must have an overlap with the local reconstruction window of at least this factor times the window size.\n"
-           << "  --local_window_size_factor FLOAT  Size of  local reconstruction window relative to the median of the read lengths.\n"
-           << "  --cluster_number INT              Max number of clusters (in the truncated Dirichlet process).\n"
-           << "  --nSample INT                     MCMC iterations.\n"
-           << "  --include_deletions INT           Include deletions (0 = no, 1 = yes).\n"
-           << "  --help                            Show this message and exit.\n"
-           << endl;
-      return 0;
-    } else {
-      return 1;
+    if (FASTAreads.size() == 0) {
+      throw phaplo::Error(phaplo::ErrorCode::no_sam_file);
     }
-  }
-
-  if (FASTAreads.size() == 0) {
-    cout << "No SAM file (--sam) specified" << endl;
-    return 1;
-  }
-  if (cons == "") {
-    cout << "No reference (--reference) specified" << endl;
-    return 1;
-  }
-
-  cout << "Configuration:\n"
-       << "  prefix = " << prefix << "\n"
-       << "  cons = " << cons << "\n"
-       << "  visualization_level = " << visualization_level << "\n"
-       << "  FASTAreads = " << FASTAreads[0] << "\n"
-       << "  have_true_haplotypes = " << have_true_haplotypes << "\n"
-       << "  FASTAhaplos = " << FASTAhaplos << "\n"
-       << "  do_local_Analysis = " << do_local_Analysis << "" << endl;
-
-  // let's go!
-  include_deletions = false;
-
-  prefix = prefix + prefix_extension;
-
-  // TODO: this can only go wrong at some point
-  int mkdir_ret = system(("mkdir -p $(dirname " + prefix + ")").c_str());
-
-  string fas_rm = "rm -f " + prefix + "*.fas";
-  string fas_global_rm = "rm -f " + prefix + "global*.fas";
-  string lab_rm = "rm -f " + prefix + "*.lab";
-  string reads_rm = "rm -f " + prefix + "*.reads";
-  string html_rm = "rm -f " + prefix + "*.html";
-  string pgm_rm = "rm -f " + prefix + "*.pgm";
-  string html_global_rm = "rm -f " + prefix + "global*.html";
-  bool do_rm = true; // false;
-
-  if (do_rm) {
-    if (do_local_Analysis) {
-      int i = system(fas_rm.c_str());
-      i = system(lab_rm.c_str());
-      i = system(reads_rm.c_str());
-      i = system(html_rm.c_str());
-      i = system(pgm_rm.c_str());
-    } else {
-      int i = system(fas_global_rm.c_str());
-      i = system(html_global_rm.c_str());
-      i = system(pgm_rm.c_str());
+    if (cons == "") {
+      throw phaplo::Error(phaplo::ErrorCode::no_reference_file);
     }
-  }
 
-  string haplos_fstr;
+    cout << "Configuration:\n"
+         << "  prefix = " << prefix << "\n"
+         << "  cons = " << cons << "\n"
+         << "  visualization_level = " << visualization_level << "\n"
+         << "  FASTAreads = " << FASTAreads[0] << "\n"
+         << "  have_true_haplotypes = " << have_true_haplotypes << "\n"
+         << "  FASTAhaplos = " << FASTAhaplos << "\n"
+         << "  do_local_Analysis = " << do_local_Analysis << "" << endl;
 
-  cout << fixed << setprecision(3);
+    // let's go!
+    include_deletions = false;
 
-  string SQ_string;
+    prefix = prefix + prefix_extension;
 
-  ifstream infRef(cons.c_str(), ios::in);
+    // TODO: this can only go wrong at some point
+    int mkdir_ret = system(("mkdir -p $(dirname " + prefix + ")").c_str());
 
-  getline(infRef, line, '\n');
-  while (getline(infRef, line, '\n')) {
+    string fas_rm = "rm -f " + prefix + "*.fas";
+    string fas_global_rm = "rm -f " + prefix + "global*.fas";
+    string lab_rm = "rm -f " + prefix + "*.lab";
+    string reads_rm = "rm -f " + prefix + "*.reads";
+    string html_rm = "rm -f " + prefix + "*.html";
+    string pgm_rm = "rm -f " + prefix + "*.pgm";
+    string html_global_rm = "rm -f " + prefix + "global*.html";
+    bool do_rm = true; // false;
 
-    SQ_string = SQ_string + line;
-  }
-  infRef.close();
-
-  string searchString("+");
-  string searchString_2("-");
-  string replaceString("N");
-  string::size_type pos = 0;
-  while ((pos = SQ_string.find(searchString, pos)) != string::npos) {
-    SQ_string.replace(pos, searchString.size(), replaceString);
-    pos++;
-  }
-
-  pos = 0;
-  while ((pos = SQ_string.find(searchString_2, pos)) != string::npos) {
-    SQ_string.replace(pos, searchString_2.size(), replaceString);
-    pos++;
-  }
-
-  vector<vector<int>> Reads;
-  vector<int> Positions_Start;
-  vector<string> IDs;
-
-  bool have_quality_scores = true;
-
-  vector<string> quality_scores;
-  vector<int> strand;
-
-  char gap_quality = '*'; //'I';
-
-  double mean_length = 0.;
-
-  int max_sequence_stop = 0;
-  int min_seq_start = 100000;
-
-  int min_sequence_stop = 100000;
-  int max_seq_start = 0;
-
-  int error_flag = 0;
-
-  if (FASTAreads.size() > 1) {
-    for (int i = 1; i < FASTAreads.size(); i++) {
-
-      error_flag = parseSAM(
-          FASTAreads[i], max_gap_fraction, min_align_score_fraction, min_qual,
-          min_length, gap_quality, mean_length, min_seq_start, max_seq_start,
-          max_sequence_stop, min_sequence_stop, have_quality_scores,
-          quality_scores, strand, Reads, Positions_Start, IDs);
-
-      if (error_flag > 0)
-        return 1;
-      cout << "After parsing the reads in file " << FASTAreads[i]
-           << ": average read length= " << mean_length / Reads.size() << ' '
-           << Reads.size() << endl;
+    if (do_rm) {
+      if (do_local_Analysis) {
+        int i = system(fas_rm.c_str());
+        i = system(lab_rm.c_str());
+        i = system(reads_rm.c_str());
+        i = system(html_rm.c_str());
+        i = system(pgm_rm.c_str());
+      } else {
+        int i = system(fas_global_rm.c_str());
+        i = system(html_global_rm.c_str());
+        i = system(pgm_rm.c_str());
+      }
     }
-  }
 
-  error_flag = parseSAMpaired(
-      FASTAreads[0], max_gap_fraction, min_align_score_fraction, min_qual,
-      min_length, gap_quality, mean_length, min_seq_start, max_seq_start,
-      max_sequence_stop, min_sequence_stop, have_quality_scores, quality_scores,
-      strand, Reads, Positions_Start, IDs);
+    string haplos_fstr;
 
-  if (error_flag > 0)
-    return 1;
-  cout << "After parsing the reads in file " << FASTAreads[0]
-       << ": average read length= " << mean_length / Reads.size() << ' '
-       << Reads.size() << endl;
+    cout << fixed << setprecision(3);
 
-  if (count > 10) {
-    if (reconstruction_start > min_seq_start &&
-        reconstruction_start < max_sequence_stop)
-      min_seq_start = reconstruction_start;
-    if (reconstruction_stop < max_sequence_stop &&
-        reconstruction_stop > min_seq_start)
-      max_sequence_stop = reconstruction_stop;
-  }
+    string SQ_string;
 
-  cout << "First read considered in the analysis starts at position "
-       << min_seq_start << ". Last read ends at position " << max_sequence_stop
-       << endl;
-  cout << "There are " << Reads.size() << " reads" << endl;
+    ifstream infRef(cons.c_str(), ios::in);
 
-  vector<int> si(Reads.size());
-  for (int i = 0; i < Reads.size(); i++) {
-    si[i] = Reads[i].size();
-  }
+    getline(infRef, line, '\n');
+    while (getline(infRef, line, '\n')) {
 
-  mean_length = phaplo::median(std::move(si)); // mean_length/Reads.size();
-  si.clear();
+      SQ_string = SQ_string + line;
+    }
+    infRef.close();
 
-  local_window_size = int(local_window_size_factor * mean_length);
-  int min_overlap = int(min_overlap_factor * local_window_size);
+    string searchString("+");
+    string searchString_2("-");
+    string replaceString("N");
+    string::size_type pos = 0;
+    while ((pos = SQ_string.find(searchString, pos)) != string::npos) {
+      SQ_string.replace(pos, searchString.size(), replaceString);
+      pos++;
+    }
 
-  cout << "Median of read lengths: " << mean_length << endl;
-  cout << "Local window size: " << local_window_size << endl;
-  cout << "Minimum overlap of reads to local analysis windows: " << min_overlap
-       << endl;
+    pos = 0;
+    while ((pos = SQ_string.find(searchString_2, pos)) != string::npos) {
+      SQ_string.replace(pos, searchString_2.size(), replaceString);
+      pos++;
+    }
 
-  vector<vector<int>> trueHaplos;
-  vector<int> trueHaplo_Positions_Start;
-  vector<string> trueHaplo_IDs;
+    vector<vector<int>> Reads;
+    vector<int> Positions_Start;
+    vector<string> IDs;
 
-  if (have_true_haplotypes) {
+    bool have_quality_scores = true;
 
-    ofstream HAP("myREFERENCE_MSA.txt", ios::out);
+    vector<string> quality_scores;
+    vector<int> strand;
 
-    ifstream inf6(FASTAhaplos.c_str(), ios::in);
+    char gap_quality = '*'; //'I';
 
-    string SQ_string = "";
-    getline(inf6, line, '\n');
-    HAP << line << endl;
-    HAP << "dummy line..." << endl;
-    while (getline(inf6, line, '\n')) {
+    double mean_length = 0.;
 
-      if (line[0] == '>') {
+    int max_sequence_stop = 0;
+    int min_seq_start = 100000;
 
-        int count = 0;
-        for (int i = 0; i < SQ_string.size(); i++) {
+    int min_sequence_stop = 100000;
+    int max_seq_start = 0;
 
-          if (SQ_string[i] != '-') {
-            break;
+    if (FASTAreads.size() > 1) {
+      for (int i = 1; i < FASTAreads.size(); i++) {
+        parseSAM(FASTAreads[i], max_gap_fraction, min_align_score_fraction,
+                 min_qual, min_length, gap_quality, mean_length, min_seq_start,
+                 max_seq_start, max_sequence_stop, min_sequence_stop,
+                 have_quality_scores, quality_scores, strand, Reads,
+                 Positions_Start, IDs);
+
+        cout << "After parsing the reads in file " << FASTAreads[i]
+             << ": average read length= " << mean_length / Reads.size() << ' '
+             << Reads.size() << endl;
+      }
+    }
+
+    parseSAMpaired(FASTAreads[0], max_gap_fraction, min_align_score_fraction,
+                   min_qual, min_length, gap_quality, mean_length,
+                   min_seq_start, max_seq_start, max_sequence_stop,
+                   min_sequence_stop, have_quality_scores, quality_scores,
+                   strand, Reads, Positions_Start, IDs);
+
+    cout << "After parsing the reads in file " << FASTAreads[0]
+         << ": average read length= " << mean_length / Reads.size() << ' '
+         << Reads.size() << endl;
+
+    if (count > 10) {
+      if (reconstruction_start > min_seq_start &&
+          reconstruction_start < max_sequence_stop)
+        min_seq_start = reconstruction_start;
+      if (reconstruction_stop < max_sequence_stop &&
+          reconstruction_stop > min_seq_start)
+        max_sequence_stop = reconstruction_stop;
+    }
+
+    cout << "First read considered in the analysis starts at position "
+         << min_seq_start << ". Last read ends at position "
+         << max_sequence_stop << endl;
+    cout << "There are " << Reads.size() << " reads" << endl;
+
+    vector<int> si(Reads.size());
+    for (int i = 0; i < Reads.size(); i++) {
+      si[i] = Reads[i].size();
+    }
+
+    mean_length = phaplo::median(std::move(si)); // mean_length/Reads.size();
+    si.clear();
+
+    local_window_size = int(local_window_size_factor * mean_length);
+    int min_overlap = int(min_overlap_factor * local_window_size);
+
+    cout << "Median of read lengths: " << mean_length << endl;
+    cout << "Local window size: " << local_window_size << endl;
+    cout << "Minimum overlap of reads to local analysis windows: "
+         << min_overlap << endl;
+
+    vector<vector<int>> trueHaplos;
+    vector<int> trueHaplo_Positions_Start;
+    vector<string> trueHaplo_IDs;
+
+    if (have_true_haplotypes) {
+
+      ofstream HAP("myREFERENCE_MSA.txt", ios::out);
+
+      ifstream inf6(FASTAhaplos.c_str(), ios::in);
+
+      string SQ_string = "";
+      getline(inf6, line, '\n');
+      HAP << line << endl;
+      HAP << "dummy line..." << endl;
+      while (getline(inf6, line, '\n')) {
+
+        if (line[0] == '>') {
+
+          int count = 0;
+          for (int i = 0; i < SQ_string.size(); i++) {
+
+            if (SQ_string[i] != '-') {
+              break;
+            }
+            count++;
           }
-          count++;
-        }
-        for (int i = 0; i < count; i++) {
-          SQ_string[i] = 'N';
-        }
-        count = SQ_string.size() - 1;
-        for (int i = SQ_string.size() - 1; i >= 0; i--) {
-
-          if (SQ_string[i] != '-') {
-            break;
+          for (int i = 0; i < count; i++) {
+            SQ_string[i] = 'N';
           }
-          count--;
-        }
-        for (int i = SQ_string.size() - 1; i >= count; i--) {
-          SQ_string[i] = 'N';
-        }
+          count = SQ_string.size() - 1;
+          for (int i = SQ_string.size() - 1; i >= 0; i--) {
 
-        HAP << "1:";
-        for (int i = 0; i < SQ_string.size(); i++) {
-          if (SQ_string[i] == '-') {
-            HAP << "0";
-          } else {
-            if (SQ_string[i] == 'A' || SQ_string[i] == 'a') {
-              HAP << "1";
+            if (SQ_string[i] != '-') {
+              break;
+            }
+            count--;
+          }
+          for (int i = SQ_string.size() - 1; i >= count; i--) {
+            SQ_string[i] = 'N';
+          }
+
+          HAP << "1:";
+          for (int i = 0; i < SQ_string.size(); i++) {
+            if (SQ_string[i] == '-') {
+              HAP << "0";
             } else {
-              if (SQ_string[i] == 'C' || SQ_string[i] == 'c') {
-                HAP << "2";
+              if (SQ_string[i] == 'A' || SQ_string[i] == 'a') {
+                HAP << "1";
               } else {
-                if (SQ_string[i] == 'G' || SQ_string[i] == 'g') {
-                  HAP << "3";
+                if (SQ_string[i] == 'C' || SQ_string[i] == 'c') {
+                  HAP << "2";
                 } else {
-                  if (SQ_string[i] == 'T' || SQ_string[i] == 't') {
-                    HAP << "4";
+                  if (SQ_string[i] == 'G' || SQ_string[i] == 'g') {
+                    HAP << "3";
                   } else {
-                    HAP << "5";
+                    if (SQ_string[i] == 'T' || SQ_string[i] == 't') {
+                      HAP << "4";
+                    } else {
+                      HAP << "5";
+                    }
                   }
                 }
               }
             }
           }
-        }
-        HAP << endl;
-        HAP << line << endl;
-        HAP << "dummy line..." << endl;
-        SQ_string = "";
-      } else {
-        SQ_string = SQ_string + line;
-      }
-    }
-
-    int count = 0;
-    for (int i = 0; i < SQ_string.size(); i++) {
-
-      if (SQ_string[i] != '-') {
-        break;
-      }
-      count++;
-    }
-    for (int i = 0; i < count; i++) {
-      SQ_string[i] = 'N';
-    }
-    count = SQ_string.size() - 1;
-    for (int i = SQ_string.size() - 1; i >= 0; i--) {
-
-      if (SQ_string[i] != '-') {
-        break;
-      }
-      count--;
-    }
-    for (int i = SQ_string.size() - 1; i >= count; i--) {
-      SQ_string[i] = 'N';
-    }
-
-    HAP << 1 << ":";
-
-    for (int i = 0; i < SQ_string.size(); i++) {
-      if (SQ_string[i] == '-') {
-        HAP << "0";
-      } else {
-        if (SQ_string[i] == 'A' || SQ_string[i] == 'a') {
-          HAP << "1";
+          HAP << endl;
+          HAP << line << endl;
+          HAP << "dummy line..." << endl;
+          SQ_string = "";
         } else {
-          if (SQ_string[i] == 'C' || SQ_string[i] == 'c') {
-            HAP << "2";
+          SQ_string = SQ_string + line;
+        }
+      }
+
+      int count = 0;
+      for (int i = 0; i < SQ_string.size(); i++) {
+
+        if (SQ_string[i] != '-') {
+          break;
+        }
+        count++;
+      }
+      for (int i = 0; i < count; i++) {
+        SQ_string[i] = 'N';
+      }
+      count = SQ_string.size() - 1;
+      for (int i = SQ_string.size() - 1; i >= 0; i--) {
+
+        if (SQ_string[i] != '-') {
+          break;
+        }
+        count--;
+      }
+      for (int i = SQ_string.size() - 1; i >= count; i--) {
+        SQ_string[i] = 'N';
+      }
+
+      HAP << 1 << ":";
+
+      for (int i = 0; i < SQ_string.size(); i++) {
+        if (SQ_string[i] == '-') {
+          HAP << "0";
+        } else {
+          if (SQ_string[i] == 'A' || SQ_string[i] == 'a') {
+            HAP << "1";
           } else {
-            if (SQ_string[i] == 'G' || SQ_string[i] == 'g') {
-              HAP << "3";
+            if (SQ_string[i] == 'C' || SQ_string[i] == 'c') {
+              HAP << "2";
             } else {
-              if (SQ_string[i] == 'T' || SQ_string[i] == 't') {
-                HAP << "4";
+              if (SQ_string[i] == 'G' || SQ_string[i] == 'g') {
+                HAP << "3";
               } else {
-                HAP << "5";
+                if (SQ_string[i] == 'T' || SQ_string[i] == 't') {
+                  HAP << "4";
+                } else {
+                  HAP << "5";
+                }
               }
             }
           }
         }
       }
-    }
-    HAP << endl;
-    HAP.close();
-    inf6.close();
-    haplos_fstr = "myREFERENCE_MSA.txt";
+      HAP << endl;
+      HAP.close();
+      inf6.close();
+      haplos_fstr = "myREFERENCE_MSA.txt";
 
-    /// haplos
+      /// haplos
 
-    string line, line_ID, line_stats;
-    vector<string> tokens;
-    string tok = ":";
+      string line, line_ID, line_stats;
+      vector<string> tokens;
+      string tok = ":";
 
-    ifstream inf4(haplos_fstr.c_str(), ios::in);
+      ifstream inf4(haplos_fstr.c_str(), ios::in);
 
-    int haplo_max_start = -1;
-    int haplo_min_stop = 100000;
-    while (getline(inf4, line_ID, '\n')) {
+      int haplo_max_start = -1;
+      int haplo_min_stop = 100000;
+      while (getline(inf4, line_ID, '\n')) {
 
-      getline(inf4, line_stats, '\n');
+        getline(inf4, line_stats, '\n');
 
-      getline(inf4, line, '\n');
+        getline(inf4, line, '\n');
 
-      trueHaplo_IDs.push_back(line_ID);
+        trueHaplo_IDs.push_back(line_ID);
 
-      tokens = tokenize(line, tok);
-      trueHaplo_Positions_Start.push_back(atoi(tokens[0].c_str()));
-      if (atoi(tokens[0].c_str()) > haplo_max_start) {
-        haplo_max_start = atoi(tokens[0].c_str());
+        tokens = tokenize(line, tok);
+        trueHaplo_Positions_Start.push_back(atoi(tokens[0].c_str()));
+        if (atoi(tokens[0].c_str()) > haplo_max_start) {
+          haplo_max_start = atoi(tokens[0].c_str());
+        }
+
+        trueHaplos.push_back(phaplo::to_vector_of_ints(tokens[1]));
+
+        if (tokens[1].size() < haplo_min_stop)
+          haplo_min_stop = atoi(tokens[0].c_str()) + tokens[1].size();
       }
 
-      trueHaplos.push_back(phaplo::to_vector_of_ints(tokens[1]));
+      inf4.close();
 
-      if (tokens[1].size() < haplo_min_stop)
-        haplo_min_stop = atoi(tokens[0].c_str()) + tokens[1].size();
-    }
+      if (haplo_min_stop < max_sequence_stop)
+        max_sequence_stop = haplo_min_stop;
 
-    inf4.close();
-
-    if (haplo_min_stop < max_sequence_stop)
-      max_sequence_stop = haplo_min_stop;
-
-    if (haplo_max_start > min_seq_start) {
-      min_seq_start = haplo_max_start;
-    }
-  }
-
-  cout << "Reconstruction starts at position " << min_seq_start
-       << " and stops at position " << max_sequence_stop << endl;
-
-  int nT = Reads.size();
-
-  int WindowStart = min_seq_start;
-
-  vector<vector<int>> WindowStartStop;
-
-  vector<int> foundClusters;
-
-  // entopy selection
-
-  levels = 5;
-  int GD = max_sequence_stop;
-  Matrix<double> tot_counts(GD, levels);
-
-  tot_counts = 1;
-
-  for (int o = 0; o < nT; o++) {
-    for (int r = 0; r < Reads[o].size(); r++) {
-      int nuc = Reads[o][r];
-
-      int qual = int(quality_scores[o][r]) - qual_subtract;
-
-      // cout << qual << endl;
-
-      int idx = r + Positions_Start[o] - 1;
-
-      if (idx < GD && nuc < 5) {
-
-        tot_counts(idx, nuc) += qual;
+      if (haplo_max_start > min_seq_start) {
+        min_seq_start = haplo_max_start;
       }
     }
-  }
 
-  vector<int> is_gap(GD, 0);
-  for (int i = WindowStart - 1; i < GD; i++) {
+    cout << "Reconstruction starts at position " << min_seq_start
+         << " and stops at position " << max_sequence_stop << endl;
 
-    if (tot_counts(i, 0) > 0.05 * sum(tot_counts(i, _)))
-      is_gap[i] = 1;
+    int nT = Reads.size();
 
-    if (!include_deletions)
-      tot_counts(i, 0) = 0;
+    int WindowStart = min_seq_start;
 
-    tot_counts(i, _) = tot_counts(i, _) + 30;
-    tot_counts(i, _) = tot_counts(i, _) / sum(tot_counts(i, _));
-  }
+    vector<vector<int>> WindowStartStop;
 
-  vector<double> entropy(GD, 0);
-  for (int i = WindowStart - 1; i < GD; i++) {
-    double sum = 0.;
-    for (int j = 0; j < levels; j++) {
-      sum -= tot_counts(i, j) * log(tot_counts(i, j));
-    }
-    entropy[i] = sum;
-    if (!include_deletions && is_gap[i]) {
-      entropy[i] = 0;
-    }
-  }
+    vector<int> foundClusters;
 
-  // cout << "yep" << endl;
+    // entopy selection
 
-  vector<int> e_index(entropy.size());
-  for (int i = 0; i < entropy.size(); i++)
-    e_index[i] = i;
+    levels = 5;
+    int GD = max_sequence_stop;
+    Matrix<double> tot_counts(GD, levels);
 
-  sort(e_index.begin(), e_index.end(), index_cmp<vector<double> &>(entropy));
+    tot_counts = 1;
 
-  double eThresh = -(1 - entropy_threshold) * log(1 - entropy_threshold) -
-                   entropy_threshold * log(entropy_threshold);
-
-  vector<int> entropy_select(GD, 0);
-  for (int i = 0; i < int(GD * entropy_fraction); i++) {
-    if (entropy[e_index[i]] > eThresh) {
-
-      entropy_select[e_index[i]] = 1;
-    }
-  }
-
-  entropy.clear();
-  e_index.clear();
-  is_gap.clear();
-  tot_counts.resize(0, 0);
-
-  ////////////////
-
-  ////// quality scoring
-  string qstr = prefix + "overlap.txt";
-  ofstream ofQ(qstr.c_str());
-  int overlap = 201;
-  if (GD - 2 * overlap - WindowStart < 10) {
-    overlap = 0.5 * (GD - WindowStart - 10);
-  }
-
-  Matrix<> over_counts(10, GD - 2 * overlap - WindowStart);
-
-  over_counts = 0;
-
-  for (int p = WindowStart + overlap; p < GD - overlap; p++) {
-
-    if (entropy_select[p] == 0)
-      continue;
-
-    vector<int> over_vec;
     for (int o = 0; o < nT; o++) {
+      for (int r = 0; r < Reads[o].size(); r++) {
+        int nuc = Reads[o][r];
 
-      int idx_start = Positions_Start[o];
-      int idx_stop = Reads[o].size() - 1 + Positions_Start[o];
+        int qual = int(quality_scores[o][r]) - qual_subtract;
 
-      if (idx_start <= p && idx_stop >= p) {
+        // cout << qual << endl;
 
-        int over = p - idx_start;
-        if (idx_stop - p < over)
-          over = idx_stop - p;
+        int idx = r + Positions_Start[o] - 1;
 
-        over_vec.push_back(over);
+        if (idx < GD && nuc < 5) {
+
+          tot_counts(idx, nuc) += qual;
+        }
       }
     }
-    sort(over_vec.begin(), over_vec.end(), myfunction);
-    for (int i = 0; i < over_counts.rows(); i++)
-      if (i < over_vec.size())
-        over_counts(i, p - overlap - WindowStart) = over_vec[i];
 
-    ofQ << p;
-    // cout << p ;
-    int i;
-    for (i = 0; i < over_counts.rows(); i++) {
-      if (over_counts(i, p - overlap - WindowStart) < overlap - 1) {
-        ofQ << '\t' << i;
-        // cout <<'\t'<< i;
-        break;
-      }
-    }
-    if (i == over_counts.rows()) {
-      ofQ << '\t' << over_counts.rows();
-      // cout <<'\t'<<">= "<<  over_counts.rows();
-    }
-    for (i = 0; i < over_counts.rows(); i++) {
-      if (over_counts(i, p - overlap - WindowStart) < 0.75 * (overlap - 1)) {
-        ofQ << '\t' << i;
-        // cout <<'\t'<< i;
-        break;
-      }
-    }
-    if (i == over_counts.rows()) {
-      ofQ << '\t' << over_counts.rows();
-      //  cout <<'\t'<<">= "<<  over_counts.rows();
+    vector<int> is_gap(GD, 0);
+    for (int i = WindowStart - 1; i < GD; i++) {
+
+      if (tot_counts(i, 0) > 0.05 * sum(tot_counts(i, _)))
+        is_gap[i] = 1;
+
+      if (!include_deletions)
+        tot_counts(i, 0) = 0;
+
+      tot_counts(i, _) = tot_counts(i, _) + 30;
+      tot_counts(i, _) = tot_counts(i, _) / sum(tot_counts(i, _));
     }
 
-    ofQ << endl;
+    vector<double> entropy(GD, 0);
+    for (int i = WindowStart - 1; i < GD; i++) {
+      double sum = 0.;
+      for (int j = 0; j < levels; j++) {
+        sum -= tot_counts(i, j) * log(tot_counts(i, j));
+      }
+      entropy[i] = sum;
+      if (!include_deletions && is_gap[i]) {
+        entropy[i] = 0;
+      }
+    }
+
+    // cout << "yep" << endl;
+
+    vector<int> e_index(entropy.size());
+    for (int i = 0; i < entropy.size(); i++)
+      e_index[i] = i;
+
+    sort(e_index.begin(), e_index.end(), index_cmp<vector<double> &>(entropy));
+
+    double eThresh = -(1 - entropy_threshold) * log(1 - entropy_threshold) -
+                     entropy_threshold * log(entropy_threshold);
+
+    vector<int> entropy_select(GD, 0);
+    for (int i = 0; i < int(GD * entropy_fraction); i++) {
+      if (entropy[e_index[i]] > eThresh) {
+
+        entropy_select[e_index[i]] = 1;
+      }
+    }
+
+    entropy.clear();
+    e_index.clear();
+    is_gap.clear();
+    tot_counts.resize(0, 0);
+
+    ////////////////
+
+    ////// quality scoring
+    string qstr = prefix + "overlap.txt";
+    ofstream ofQ(qstr.c_str());
+    int overlap = 201;
+    if (GD - 2 * overlap - WindowStart < 10) {
+      overlap = 0.5 * (GD - WindowStart - 10);
+    }
+
+    Matrix<> over_counts(10, GD - 2 * overlap - WindowStart);
+
+    over_counts = 0;
+
+    for (int p = WindowStart + overlap; p < GD - overlap; p++) {
+
+      if (entropy_select[p] == 0)
+        continue;
+
+      vector<int> over_vec;
+      for (int o = 0; o < nT; o++) {
+
+        int idx_start = Positions_Start[o];
+        int idx_stop = Reads[o].size() - 1 + Positions_Start[o];
+
+        if (idx_start <= p && idx_stop >= p) {
+
+          int over = p - idx_start;
+          if (idx_stop - p < over)
+            over = idx_stop - p;
+
+          over_vec.push_back(over);
+        }
+      }
+      sort(over_vec.begin(), over_vec.end(), myfunction);
+      for (int i = 0; i < over_counts.rows(); i++)
+        if (i < over_vec.size())
+          over_counts(i, p - overlap - WindowStart) = over_vec[i];
+
+      ofQ << p;
+      // cout << p ;
+      int i;
+      for (i = 0; i < over_counts.rows(); i++) {
+        if (over_counts(i, p - overlap - WindowStart) < overlap - 1) {
+          ofQ << '\t' << i;
+          // cout <<'\t'<< i;
+          break;
+        }
+      }
+      if (i == over_counts.rows()) {
+        ofQ << '\t' << over_counts.rows();
+        // cout <<'\t'<<">= "<<  over_counts.rows();
+      }
+      for (i = 0; i < over_counts.rows(); i++) {
+        if (over_counts(i, p - overlap - WindowStart) < 0.75 * (overlap - 1)) {
+          ofQ << '\t' << i;
+          // cout <<'\t'<< i;
+          break;
+        }
+      }
+      if (i == over_counts.rows()) {
+        ofQ << '\t' << over_counts.rows();
+        //  cout <<'\t'<<">= "<<  over_counts.rows();
+      }
+
+      ofQ << endl;
+      // cout << endl;
+    }
+    ofQ.close();
     // cout << endl;
-  }
-  ofQ.close();
-  // cout << endl;
 
-  ///////////////////////////////
+    ///////////////////////////////
 
-  if (do_local_Analysis) {
+    if (do_local_Analysis) {
 
-    local_Analysis(min_overlap, K, nSample, nT, max_reads_in_window,
-                   WindowStart + floor(0.5 * local_window_size),
-                   local_window_size, WindowStartStop, max_sequence_stop,
-                   min_seq_start, Positions_Start, Reads, have_quality_scores,
-                   quality_scores, IDs, strand, prefix, SQ_string,
-                   have_true_haplotypes, trueHaplos, trueHaplo_Positions_Start,
-                   trueHaplo_IDs, foundClusters, entropy_threshold,
-                   entropy_fraction, entropy_select, alpha_MN_local);
+      local_Analysis(
+          min_overlap, K, nSample, nT, max_reads_in_window,
+          WindowStart + floor(0.5 * local_window_size), local_window_size,
+          WindowStartStop, max_sequence_stop, min_seq_start, Positions_Start,
+          Reads, have_quality_scores, quality_scores, IDs, strand, prefix,
+          SQ_string, have_true_haplotypes, trueHaplos,
+          trueHaplo_Positions_Start, trueHaplo_IDs, foundClusters,
+          entropy_threshold, entropy_fraction, entropy_select, alpha_MN_local);
+
+      string startStopStr = prefix + "StartStop.txt";
+
+      ofstream outS(startStopStr.c_str(), ios::out);
+      for (int i = 0; i < WindowStartStop.size(); i++) {
+        outS << i << ' ' << WindowStartStop[i][0] << ' '
+             << WindowStartStop[i][1] << ' ' << foundClusters[i] << endl;
+      }
+      outS.close();
+    }
 
     string startStopStr = prefix + "StartStop.txt";
+    int max_clusters = -1;
+    int max_index;
+    WindowStartStop.clear();
+    ifstream inS(startStopStr.c_str(), ios::in);
+    vector<int> clusterNums;
+    while (getline(inS, line, '\n')) {
+      tokens = tokenize(line, " ");
+      vector<int> wss(2);
+      wss[0] = atoi(tokens[1].c_str());
+      wss[1] = atoi(tokens[2].c_str());
+      WindowStartStop.push_back(wss);
 
-    ofstream outS(startStopStr.c_str(), ios::out);
-    for (int i = 0; i < WindowStartStop.size(); i++) {
-      outS << i << ' ' << WindowStartStop[i][0] << ' ' << WindowStartStop[i][1]
-           << ' ' << foundClusters[i] << endl;
-    }
-    outS.close();
-  }
+      int clnum = atoi(tokens[3].c_str());
+      clusterNums.push_back(clnum);
 
-  string startStopStr = prefix + "StartStop.txt";
-  int max_clusters = -1;
-  int max_index;
-  WindowStartStop.clear();
-  ifstream inS(startStopStr.c_str(), ios::in);
-  vector<int> clusterNums;
-  while (getline(inS, line, '\n')) {
-    tokens = tokenize(line, " ");
-    vector<int> wss(2);
-    wss[0] = atoi(tokens[1].c_str());
-    wss[1] = atoi(tokens[2].c_str());
-    WindowStartStop.push_back(wss);
-
-    int clnum = atoi(tokens[3].c_str());
-    clusterNums.push_back(clnum);
-
-    if (clnum > max_clusters) {
-      max_clusters = clnum;
-      max_index = atoi(tokens[0].c_str());
-    }
-  }
-  inS.close();
-
-  if (max_clusters < 0) {
-    cout << "Could not find window with maximum cluster number." << endl;
-    return 1;
-  }
-
-  double min_d = 1e100;
-  int min_i;
-  for (int i = 0; i < clusterNums.size(); i++) {
-    if (clusterNums[i] == max_clusters) {
-      double dist = fabs(i - 0.5 * clusterNums.size());
-      if (dist < min_d) {
-        min_d = dist;
-        min_i = i;
+      if (clnum > max_clusters) {
+        max_clusters = clnum;
+        max_index = atoi(tokens[0].c_str());
       }
     }
+    inS.close();
+
+    if (max_clusters < 0) {
+      throw phaplo::Error(phaplo::ErrorCode::no_maximum_cluster_number_window);
+    }
+
+    double min_d = 1e100;
+    int min_i;
+    for (int i = 0; i < clusterNums.size(); i++) {
+      if (clusterNums[i] == max_clusters) {
+        double dist = fabs(i - 0.5 * clusterNums.size());
+        if (dist < min_d) {
+          min_d = dist;
+          min_i = i;
+        }
+      }
+    }
+
+    max_index = min_i;
+
+    int select_start = max_index;
+    reconstruct_global(
+        min_overlap, K, nSample, WindowStartStop, local_window_size,
+        select_start, nT, max_sequence_stop + 1, min_seq_start, Positions_Start,
+        Reads, have_quality_scores, quality_scores, IDs, strand, prefix,
+        SQ_string, have_true_haplotypes, trueHaplos, trueHaplo_Positions_Start,
+        trueHaplo_IDs, entropy_threshold, entropy_fraction, entropy_select);
+  } catch (const phaplo::Error &error) {
+    std::cerr << "Error: " << error.what() << std::endl;
+    return error.id();
   }
-
-  max_index = min_i;
-
-  int select_start = max_index;
-  reconstruct_global(
-      min_overlap, K, nSample, WindowStartStop, local_window_size, select_start,
-      nT, max_sequence_stop + 1, min_seq_start, Positions_Start, Reads,
-      have_quality_scores, quality_scores, IDs, strand, prefix, SQ_string,
-      have_true_haplotypes, trueHaplos, trueHaplo_Positions_Start,
-      trueHaplo_IDs, entropy_threshold, entropy_fraction, entropy_select);
 }
