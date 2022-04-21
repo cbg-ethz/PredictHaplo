@@ -226,14 +226,14 @@ int parse_sam_line(const vector<string> &tokens, string &used_qual,
   return 0;
 }
 
-int parseSAMpaired(string al, double max_gap_fraction,
-                   double min_align_score_fraction, double min_qual,
-                   int min_length, char gap_quality, double &mean_length,
-                   int &min_seq_start, int &max_seq_start,
-                   int &max_sequence_stop, int &min_sequence_stop,
-                   bool &have_quality_scores, vector<string> &quality_scores,
-                   vector<int> &strand, vector<vector<int>> &Reads,
-                   vector<int> &Positions_Start, vector<string> &IDs) {
+void parseSAMpaired(string al, double max_gap_fraction,
+                    double min_align_score_fraction, double min_qual,
+                    int min_length, char gap_quality, double &mean_length,
+                    int &min_seq_start, int &max_seq_start,
+                    int &max_sequence_stop, int &min_sequence_stop,
+                    bool &have_quality_scores, vector<string> &quality_scores,
+                    vector<int> &strand, vector<vector<int>> &Reads,
+                    vector<int> &Positions_Start, vector<string> &IDs) {
 
   string line, line_stats, line_ID;
   string tok = ":";
@@ -432,18 +432,19 @@ int parseSAMpaired(string al, double max_gap_fraction,
       }
     }
   }
-
-  // of_start.close();
-  return 0;
 }
 
-int parseSAM(string al, double max_gap_fraction,
-             double min_align_score_fraction, double min_qual, int min_length,
-             char gap_quality, double &mean_length, int &min_seq_start,
-             int &max_seq_start, int &max_sequence_stop, int &min_sequence_stop,
-             bool &have_quality_scores, vector<string> &quality_scores,
-             vector<int> &strand, vector<vector<int>> &Reads,
-             vector<int> &Positions_Start, vector<string> &IDs) {
+/**
+ * @throw phaplo::Error
+ */
+void parseSAM(string al, double max_gap_fraction,
+              double min_align_score_fraction, double min_qual, int min_length,
+              char gap_quality, double &mean_length, int &min_seq_start,
+              int &max_seq_start, int &max_sequence_stop,
+              int &min_sequence_stop, bool &have_quality_scores,
+              vector<string> &quality_scores, vector<int> &strand,
+              vector<vector<int>> &Reads, vector<int> &Positions_Start,
+              vector<string> &IDs) {
 
   string line, line_stats, line_ID;
   string tok = ":";
@@ -463,8 +464,7 @@ int parseSAM(string al, double max_gap_fraction,
     tokens = tokenize(line, "\t");
 
     if (tokens.size() < 5) {
-      cout << "Problem with sam file..." << endl;
-      return 1;
+      throw phaplo::Error(phaplo::ErrorCode::parse_sam_failed);
     }
 
     if (tokens[5] != "*") {
@@ -650,9 +650,6 @@ int parseSAM(string al, double max_gap_fraction,
       }
     }
   }
-
-  // mean_length /= Reads.size();
-  return 0;
 }
 
 int MultiNomialDPMReadsSemiEntropy(
@@ -3165,33 +3162,26 @@ int main(int argc, char *argv[]) {
     int min_sequence_stop = 100000;
     int max_seq_start = 0;
 
-    int error_flag = 0;
-
     if (FASTAreads.size() > 1) {
       for (int i = 1; i < FASTAreads.size(); i++) {
+        parseSAM(FASTAreads[i], max_gap_fraction, min_align_score_fraction,
+                 min_qual, min_length, gap_quality, mean_length, min_seq_start,
+                 max_seq_start, max_sequence_stop, min_sequence_stop,
+                 have_quality_scores, quality_scores, strand, Reads,
+                 Positions_Start, IDs);
 
-        error_flag = parseSAM(
-            FASTAreads[i], max_gap_fraction, min_align_score_fraction, min_qual,
-            min_length, gap_quality, mean_length, min_seq_start, max_seq_start,
-            max_sequence_stop, min_sequence_stop, have_quality_scores,
-            quality_scores, strand, Reads, Positions_Start, IDs);
-
-        if (error_flag > 0)
-          return 1;
         cout << "After parsing the reads in file " << FASTAreads[i]
              << ": average read length= " << mean_length / Reads.size() << ' '
              << Reads.size() << endl;
       }
     }
 
-    error_flag = parseSAMpaired(
+    parseSAMpaired(
         FASTAreads[0], max_gap_fraction, min_align_score_fraction, min_qual,
         min_length, gap_quality, mean_length, min_seq_start, max_seq_start,
         max_sequence_stop, min_sequence_stop, have_quality_scores,
         quality_scores, strand, Reads, Positions_Start, IDs);
 
-    if (error_flag > 0)
-      return 1;
     cout << "After parsing the reads in file " << FASTAreads[0]
          << ": average read length= " << mean_length / Reads.size() << ' '
          << Reads.size() << endl;

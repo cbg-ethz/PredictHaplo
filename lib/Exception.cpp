@@ -28,6 +28,8 @@ std::string message(const ErrorCode code) noexcept {
     return "Please provide only a single SAM file via \"--sam\".";
   case ErrorCode::no_valid_reads:
     return "No valid reads were discovered.";
+  case ErrorCode::parse_sam_failed:
+    return "Parsing the SAM file failed.";
   case ErrorCode::unknown:
     return "An unspecified error occured.";
   }

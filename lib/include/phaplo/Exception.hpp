@@ -34,6 +34,7 @@ enum class ErrorCode : int {
   no_sam_file,
   multiple_sam_files,
   no_valid_reads,
+  parse_sam_failed,
 };
 
 /**

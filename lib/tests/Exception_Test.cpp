@@ -68,5 +68,15 @@ TEST_F(Exception_Test, no_valid_reads_has_message_informing_user) {
   EXPECT_STREQ(error.what(), "No valid reads were discovered.");
 }
 
+TEST_F(Exception_Test, parse_sam_failed_error_has_id_5) {
+  const auto error = Error(ErrorCode::parse_sam_failed);
+  EXPECT_EQ(error.id(), 5);
+}
+
+TEST_F(Exception_Test, parse_sam_failed_has_message_informing_user) {
+  const auto error = Error(ErrorCode::parse_sam_failed);
+  EXPECT_STREQ(error.what(), "Parsing the SAM file failed.");
+}
+
 } // namespace
 } // namespace phaplo
