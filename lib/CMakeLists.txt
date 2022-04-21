@@ -19,6 +19,7 @@ add_library(phaplo
   median.cpp
   is_alignment_match.cpp
   to_vector_of_ints.cpp
+  Exception.cpp
 )
 target_include_directories(phaplo
   PUBLIC
