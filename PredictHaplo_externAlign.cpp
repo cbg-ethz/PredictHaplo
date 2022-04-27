@@ -22,6 +22,7 @@
 #include "phaplo/Exception.hpp"
 #include "phaplo/binary.hpp"
 #include "phaplo/is_alignment_match.hpp"
+#include "phaplo/is_cigar_code.hpp"
 #include "phaplo/median.hpp"
 #include "phaplo/to_vector_of_ints.hpp"
 #include "scythestat/distributions.h"
@@ -131,7 +132,7 @@ int parse_sam_line(const vector<string> &tokens, string &used_qual,
 
   vector<int> isCode(tokens[5].size(), 1);
   for (int i = 0; i < tokens[5].size(); i++) {
-    if (!(isalpha(tokens[5][i]) || tokens[5][i] == '='))
+    if (!phaplo::is_cigar_code(tokens[5][i]))
       isCode[i] = 0;
   }
 

@@ -30,6 +30,7 @@ add_executable(
   to_vector_of_ints_Test.cpp
   binary_Test.cpp
   Exception_Test.cpp
+  is_cigar_code_Test.cpp
 )
 target_link_libraries(
   phaplo_Tests

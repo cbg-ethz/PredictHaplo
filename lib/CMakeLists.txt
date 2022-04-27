@@ -21,6 +21,7 @@ add_library(phaplo
   to_vector_of_ints.cpp
   binary.cpp
   Exception.cpp
+  is_cigar_code.cpp
 )
 target_include_directories(phaplo
   PUBLIC
