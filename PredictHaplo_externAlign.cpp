@@ -129,23 +129,23 @@ int parse_sam_line(const vector<string> &tokens, string &used_qual,
 
   al_start = atoi(tokens[3].c_str());
 
-  vector<int> isAlpha(tokens[5].size(), 1);
+  vector<int> isCode(tokens[5].size(), 1);
   for (int i = 0; i < tokens[5].size(); i++) {
-    if (!isalpha(tokens[5][i]))
-      isAlpha[i] = 0;
+    if (!(isalpha(tokens[5][i]) || tokens[5][i] == '='))
+      isCode[i] = 0;
   }
 
   vector<int> sub_length_vec;
   vector<char> symbols;
   int sub_length = 0;
   for (int i = 0; i < tokens[5].size(); i++) {
-    if (isAlpha[i] == 1) {
+    if (isCode[i] == 1) {
       sub_length_vec.push_back(
           atoi(tokens[5].substr(i - sub_length, sub_length).c_str()));
       symbols.push_back(tokens[5][i]);
       sub_length = 0;
     }
-    if (isAlpha[i] == 0)
+    if (isCode[i] == 0)
       sub_length++;
   }
 
