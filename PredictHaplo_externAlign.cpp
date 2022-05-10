@@ -20,7 +20,9 @@
 #define R_finite(x) std::isfinite(x)
 
 #include "phaplo/Exception.hpp"
+#include "phaplo/binary.hpp"
 #include "phaplo/is_alignment_match.hpp"
+#include "phaplo/is_cigar_code.hpp"
 #include "phaplo/median.hpp"
 #include "phaplo/to_vector_of_ints.hpp"
 #include "scythestat/distributions.h"
@@ -38,8 +40,10 @@
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
+#include <optional>
 #include <random>
 #include <sstream>
+#include <unordered_map>
 
 using namespace scythe;
 using namespace std;
@@ -56,21 +60,6 @@ bool myfunction(int i, int j) { return (i > j); }
 
 int visualization_level = 1;
 int local_window_size;
-
-string binary(int number, stringstream &strs) {
-  int remainder;
-
-  if (number <= 1) {
-    strs << number;
-    return strs.str();
-  }
-
-  remainder = number % 2;
-  binary(number >> 1, strs);
-  strs << remainder;
-
-  return strs.str();
-}
 
 vector<string> tokenize(const string &str, const string &delimiters) {
   vector<string> tokens;
@@ -141,23 +130,23 @@ int parse_sam_line(const vector<string> &tokens, string &used_qual,
 
   al_start = atoi(tokens[3].c_str());
 
-  vector<int> isAlpha(tokens[5].size(), 1);
+  vector<int> isCode(tokens[5].size(), 1);
   for (int i = 0; i < tokens[5].size(); i++) {
-    if (!isalpha(tokens[5][i]))
-      isAlpha[i] = 0;
+    if (!phaplo::is_cigar_code(tokens[5][i]))
+      isCode[i] = 0;
   }
 
   vector<int> sub_length_vec;
   vector<char> symbols;
   int sub_length = 0;
   for (int i = 0; i < tokens[5].size(); i++) {
-    if (isAlpha[i] == 1) {
+    if (isCode[i] == 1) {
       sub_length_vec.push_back(
           atoi(tokens[5].substr(i - sub_length, sub_length).c_str()));
       symbols.push_back(tokens[5][i]);
       sub_length = 0;
     }
-    if (isAlpha[i] == 0)
+    if (isCode[i] == 0)
       sub_length++;
   }
 
@@ -235,15 +224,11 @@ void parseSAMpaired(string al, double max_gap_fraction,
                     vector<int> &strand, vector<vector<int>> &Reads,
                     vector<int> &Positions_Start, vector<string> &IDs) {
 
-  string line, line_stats, line_ID;
-  string tok = ":";
-  vector<string> tokens, tokens2, tokens_as, tokens_pairs, tokens_1, tokens_2;
+  string line;
 
   have_quality_scores = true;
 
   ifstream inf6(al.c_str(), ios::in);
-
-  int pair_counter = 0, seq_counter = 0, tot_counter = 0, singleton_counter = 0;
 
   vector<int> seq_b, seq_b_pairs;
   string used_qual, used_qual_pairs;
@@ -253,53 +238,34 @@ void parseSAMpaired(string al, double max_gap_fraction,
 
   int indels, indels_pairs;
 
-  string sRC_1, sRC_2, pairs_1, pairs_2;
-  bool part_1 = false, part_2 = false, is_pair = false;
-  string id, id_1;
-  int RC;
-  mersenne myrng;
+  std::unordered_map<std::string, std::vector<std::string>> candidates;
   while (getline(inf6, line, '\n')) {
 
     if (line[0] == '@') {
       continue;
     }
 
-    tot_counter++;
+    const auto tokens = tokenize(line, "\t");
+    const auto RC = static_cast<unsigned int>(atoi(tokens[1].c_str()));
+    const auto id = tokens[0];
 
-    tokens = tokenize(line, "\t");
-    RC = atoi(tokens[1].c_str());
-    id = tokens[0];
+    const auto sRC = phaplo::binary(RC);
 
-    stringstream strs;
-    string sRC = binary(RC, strs);
-
-    int sz = sRC.size();
-
-    if (sz > 8)
+    if (phaplo::used_bits(sRC) > 8)
       continue;
 
-    if (sRC[sz - 3] == '1' || sRC[sz - 4] == '1')
+    const auto is_unmapped = bool{sRC[2] || sRC[3]};
+    const auto is_paired_read = sRC[0];
+
+    if (is_unmapped || !is_paired_read)
       continue;
 
-    if (part_1 && id == id_1 && sz == 8 && sRC[0] == '1') {
-      is_pair = true;
-      part_1 = false;
-      pairs_2 = line;
-      sRC_2 = sRC;
+    const auto found = candidates.find(id);
 
-      tokens_2 = tokens;
-      pair_counter++;
-    } else {
-      part_1 = true;
-      is_pair = false;
-      pairs_1 = line;
-      sRC_1 = sRC;
-      id_1 = id;
-      tokens_1 = tokens;
-      singleton_counter++;
-    }
-
-    if (is_pair) {
+    if (found != candidates.end()) {
+      const auto is_read1 = bool{sRC[6]};
+      const auto &tokens_1 = is_read1 ? tokens : found->second;
+      const auto &tokens_2 = !is_read1 ? tokens : found->second;
 
       parse_sam_line(tokens_1, used_qual, seq_b, a_score, gap_quality, indels,
                      have_quality_scores, al_start);
@@ -392,9 +358,6 @@ void parseSAMpaired(string al, double max_gap_fraction,
           }
         }
 
-        // double unif = myrng.runif();
-
-        // if(unif < 1 && (!is_gap || Nlength < 100)){
         if (!is_gap || Nlength < 200) {
           Positions_Start.push_back(StartPos);
           Reads.push_back(SEQ_combined);
@@ -405,17 +368,6 @@ void parseSAMpaired(string al, double max_gap_fraction,
 
           quality_scores.push_back(Qscores);
           strand.push_back(RC);
-          seq_counter++;
-
-          /* of_start<<  al_start <<'\t' <<  al_start_pairs << '\t'<< fabs(
-          al_start_pairs-  al_start) << endl;
-
-          if(  al_start +seq_b.size() > max_sequence_length)
-            max_sequence_length =  al_start +seq_b.size();
-
-          if(al_start < min_seq_start)
-            min_seq_start = al_start;
-          */
 
           if (al_start + seq_b.size() > max_sequence_stop)
             max_sequence_stop = al_start + seq_b.size();
@@ -430,224 +382,9 @@ void parseSAMpaired(string al, double max_gap_fraction,
             max_seq_start = al_start;
         }
       }
-    }
-  }
-}
-
-/**
- * @throw phaplo::Error
- */
-void parseSAM(string al, double max_gap_fraction,
-              double min_align_score_fraction, double min_qual, int min_length,
-              char gap_quality, double &mean_length, int &min_seq_start,
-              int &max_seq_start, int &max_sequence_stop,
-              int &min_sequence_stop, bool &have_quality_scores,
-              vector<string> &quality_scores, vector<int> &strand,
-              vector<vector<int>> &Reads, vector<int> &Positions_Start,
-              vector<string> &IDs) {
-
-  string line, line_stats, line_ID;
-  string tok = ":";
-  vector<string> tokens, tokens2, tokens_as;
-
-  have_quality_scores = true;
-
-  ifstream inf6(al.c_str(), ios::in);
-
-  int RC;
-  while (getline(inf6, line, '\n')) {
-
-    // cout << inf6 << ' '<< line << endl;
-    if (line[0] == '@')
-      continue;
-
-    tokens = tokenize(line, "\t");
-
-    if (tokens.size() < 5) {
-      throw phaplo::Error(phaplo::ErrorCode::parse_sam_failed);
-    }
-
-    if (tokens[5] != "*") {
-
-      vector<int> isAlpha(tokens[5].size(), 1);
-      for (int i = 0; i < tokens[5].size(); i++) {
-        if (!isalpha(tokens[5][i]))
-          isAlpha[i] = 0;
-      }
-
-      vector<int> sub_length_vec;
-      vector<char> symbols;
-      int sub_length = 0;
-      for (int i = 0; i < tokens[5].size(); i++) {
-        if (isAlpha[i] == 1) {
-          sub_length_vec.push_back(
-              atoi(tokens[5].substr(i - sub_length, sub_length).c_str()));
-          symbols.push_back(tokens[5][i]);
-          sub_length = 0;
-        }
-        if (isAlpha[i] == 0)
-          sub_length++;
-      }
-
-      RC = atoi(tokens[1].c_str());
-      stringstream strs;
-      string sRC = binary(RC, strs);
-      // cout << line<< endl;
-      // cout << sRC; cout << endl;
-
-      int sz = sRC.size();
-
-      if (sz > 8)
-        continue;
-
-      if (sRC[sz - 3] == '1' || sRC[sz - 4] == '1')
-        continue;
-
-      if (sRC[sz - 5] == 0) {
-        RC = 0;
-      }
-      if (sRC[sz - 5] == 1) {
-        RC = 16;
-      }
-
-      if (RC == 0 || RC == 16) {
-
-        string id = tokens[0];
-
-        int qual = atoi(tokens[4].c_str());
-
-        have_quality_scores = true;
-        string qual_s = tokens[10];
-        if (qual_s.size() == 1 && qual_s[0] == '*')
-          have_quality_scores = false;
-        string used_qual;
-
-        vector<int> seq_b;
-        int c = 0;
-        int indels = 0;
-
-        for (int i = 0; i < sub_length_vec.size(); i++) {
-
-          if (symbols[i] == 'S')
-            for (int j = 0; j < sub_length_vec[i]; j++) {
-              c++;
-            }
-
-          if (phaplo::is_alignment_match(symbols[i]))
-            for (int j = 0; j < sub_length_vec[i]; j++) {
-              int k = 0;
-              if (tokens[9][c] == 'A' || tokens[9][c] == 'a')
-                k = 1;
-              else if (tokens[9][c] == 'C' || tokens[9][c] == 'c')
-                k = 2;
-              else if (tokens[9][c] == 'G' || tokens[9][c] == 'g')
-                k = 3;
-              else if (tokens[9][c] == 'T' || tokens[9][c] == 't')
-                k = 4;
-              seq_b.push_back(k);
-              if (have_quality_scores) {
-
-                if (1 > 2 && int(qual_s[c]) - qual_subtract < 10) {
-
-                  cout << int(qual_s[c]) - qual_subtract << ':'
-                       << pow(10, -int(qual_s[c] - qual_subtract) / 10.0) << ':'
-                       << int(50 * pow(10,
-                                       -int(qual_s[c] - qual_subtract) / 10.0) +
-                              qual_subtract)
-                       << ' ' << flush; // newCout
-                }
-
-                // qual_s[c] = (char)
-
-                int q = int(
-                    41 * (1 - pow(10, -int(qual_s[c] - qual_subtract) / 10.0)) +
-                    qual_subtract);
-                qual_s[c] = char(q);
-
-                // cout <<  q<<':'<< int(qual_s[c]) - qual_subtract<<' '<< flush
-                // ;
-
-                used_qual.append(1, qual_s[c]);
-
-              } else
-                used_qual.append(1, 'I');
-              // cout<< tokens[9][c];
-              c++;
-            }
-          else if (symbols[i] == 'I')
-            for (int j = 0; j < sub_length_vec[i]; j++) {
-
-              // cout<< tokens[9][c];
-              c++;
-              // indels++;
-            }
-          else if (symbols[i] == 'D')
-            for (int j = 0; j < sub_length_vec[i]; j++) {
-
-              used_qual.append(1, gap_quality);
-
-              seq_b.push_back(0);
-              indels++;
-              // cout<< '*';
-            }
-          else if (symbols[i] == 'P') {
-            // for(int j =0; j< sub_length_vec[i];j++){
-            // cout<< '*';
-            // }
-          }
-        }
-        // cout<< endl;
-
-        // cout << used_qual << endl;
-
-        int al_start = atoi(tokens[3].c_str());
-
-        double a_score;
-
-        bool foundAscore = false;
-        for (int j = 11; j < tokens.size(); j++) {
-          tokens_as = tokenize(tokens[j].c_str(), ":");
-
-          if (tokens_as[0] == "AS") {
-            a_score = atof(tokens_as[2].c_str());
-            foundAscore = true;
-            break;
-          }
-        }
-        if (!foundAscore) {
-          a_score = min_align_score_fraction * seq_b.size() * 2;
-        }
-
-        if (seq_b.size() > min_length && qual > min_qual &&
-            double(indels) / seq_b.size() < max_gap_fraction &&
-            a_score / seq_b.size() > min_align_score_fraction) {
-
-          Positions_Start.push_back(al_start);
-          Reads.push_back(seq_b);
-          IDs.push_back(id);
-          mean_length += seq_b.size();
-
-          quality_scores.push_back(used_qual);
-          // for(int c =0; c < quality_scores[quality_scores.size()-1].size();
-          // c++)
-          //  cout << int(quality_scores[quality_scores.size()-1][c]) -
-          //  qual_subtract <<' '<< flush;
-
-          strand.push_back(RC);
-        }
-
-        if (al_start + seq_b.size() > max_sequence_stop)
-          max_sequence_stop = al_start + seq_b.size();
-
-        if (al_start + seq_b.size() < min_sequence_stop)
-          min_sequence_stop = al_start + seq_b.size();
-
-        if (al_start < min_seq_start)
-          min_seq_start = al_start;
-
-        if (al_start > max_seq_start)
-          max_seq_start = al_start;
-      }
+      candidates.erase(found);
+    } else {
+      candidates[id] = tokens;
     }
   }
 }
@@ -2889,7 +2626,7 @@ int main(int argc, char *argv[]) {
     string prefix = "predicthaplo_output/ph_";
     string cons;
 
-    vector<string> FASTAreads;
+    std::optional<std::string> FASTAreads;
     bool have_true_haplotypes = true;
     string FASTAhaplos;
 
@@ -2969,8 +2706,10 @@ int main(int argc, char *argv[]) {
       } else if (choice == "visualization_level") {
         visualization_level = atoi(optarg);
       } else if (choice == "sam") {
-        // TODO: also allow multiple read files
-        FASTAreads.push_back(optarg);
+        if (FASTAreads.has_value()) {
+          throw phaplo::Error(phaplo::ErrorCode::multiple_sam_files);
+        }
+        FASTAreads = optarg;
       } else if (choice == "have_true_haplotypes") {
         have_true_haplotypes = atoi(optarg);
       } else if (choice == "true_haplotypes") {
@@ -3065,7 +2804,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    if (FASTAreads.size() == 0) {
+    if (!FASTAreads.has_value()) {
       throw phaplo::Error(phaplo::ErrorCode::no_sam_file);
     }
     if (cons == "") {
@@ -3076,7 +2815,7 @@ int main(int argc, char *argv[]) {
          << "  prefix = " << prefix << "\n"
          << "  cons = " << cons << "\n"
          << "  visualization_level = " << visualization_level << "\n"
-         << "  FASTAreads = " << FASTAreads[0] << "\n"
+         << "  FASTAreads = " << FASTAreads.value() << "\n"
          << "  have_true_haplotypes = " << have_true_haplotypes << "\n"
          << "  FASTAhaplos = " << FASTAhaplos << "\n"
          << "  do_local_Analysis = " << do_local_Analysis << "" << endl;
@@ -3161,27 +2900,17 @@ int main(int argc, char *argv[]) {
     int min_sequence_stop = 100000;
     int max_seq_start = 0;
 
-    if (FASTAreads.size() > 1) {
-      for (int i = 1; i < FASTAreads.size(); i++) {
-        parseSAM(FASTAreads[i], max_gap_fraction, min_align_score_fraction,
-                 min_qual, min_length, gap_quality, mean_length, min_seq_start,
-                 max_seq_start, max_sequence_stop, min_sequence_stop,
-                 have_quality_scores, quality_scores, strand, Reads,
-                 Positions_Start, IDs);
-
-        cout << "After parsing the reads in file " << FASTAreads[i]
-             << ": average read length= " << mean_length / Reads.size() << ' '
-             << Reads.size() << endl;
-      }
-    }
-
-    parseSAMpaired(FASTAreads[0], max_gap_fraction, min_align_score_fraction,
-                   min_qual, min_length, gap_quality, mean_length,
-                   min_seq_start, max_seq_start, max_sequence_stop,
+    parseSAMpaired(FASTAreads.value(), max_gap_fraction,
+                   min_align_score_fraction, min_qual, min_length, gap_quality,
+                   mean_length, min_seq_start, max_seq_start, max_sequence_stop,
                    min_sequence_stop, have_quality_scores, quality_scores,
                    strand, Reads, Positions_Start, IDs);
 
-    cout << "After parsing the reads in file " << FASTAreads[0]
+    if (Reads.empty()) {
+      throw phaplo::Error(phaplo::ErrorCode::no_valid_reads);
+    }
+
+    cout << "After parsing the reads in file " << FASTAreads.value()
          << ": average read length= " << mean_length / Reads.size() << ' '
          << Reads.size() << endl;
 

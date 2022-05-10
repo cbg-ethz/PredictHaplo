@@ -19,7 +19,9 @@ add_library(phaplo
   median.cpp
   is_alignment_match.cpp
   to_vector_of_ints.cpp
+  binary.cpp
   Exception.cpp
+  is_cigar_code.cpp
 )
 target_include_directories(phaplo
   PUBLIC
