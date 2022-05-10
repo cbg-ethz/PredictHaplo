@@ -241,7 +241,6 @@ void parseSAMpaired(string al, double max_gap_fraction,
 
   std::unordered_map<std::string, std::vector<std::string>> candidates;
   while (getline(inf6, line, '\n')) {
-
     if (line[0] == '@') {
       continue;
     }
@@ -590,12 +589,6 @@ int MultiNomialDPMReadsSemiEntropy(
       cprobL = exp(cprob(_, l) - lMax);
 
       cprobL = cprobL / sum(cprobL);
-      /*
-      if(Labels[l] > -1 && LabelProbs[l] > 0.5){
-        cprobL = cprobL*(1.0-LabelProbs[l]);
-        cprobL[Labels[l]] += LabelProbs[l];
-      }
-      */
 
       bins[0] = cprobL[0];
 
@@ -687,15 +680,6 @@ int MultiNomialDPMReadsSemiEntropy(
     if (i > burnin) {
       piMean = piMean + pi;
     }
-    /*
-      if(i%50 == 0){
-      if(i > burnin)
-      cout<<i<<' '<< " piMean: " << t(piMean)/(i-burnin+1);
-      else{
-      cout<<i<<' '<< " pi: " << t(pi);
-      }
-      }
-    */
     if (i % 50 == 0) {
       cout << i << ' ' << flush;
     }
@@ -1244,13 +1228,6 @@ int visualizeAlignments(
               ofAW << '\t';
               ofAW << IDs_in_window[o] << '\t' << ", reconstructed_" << cc
                    << '\t';
-              /*
-              if(strand[ reads_in_window[o]] == 0){
-                ofAW << "F"<<'\t';
-              }else{
-                ofAW << "RC"<<'\t';
-              }
-              */
               ofAW << endl;
             }
           }
@@ -1353,20 +1330,6 @@ int visualizeAlignments(
     }
     ofFASTA << endl;
     ofFASTA << ";EndOfComments" << endl;
-
-    /*
-      for(int k=0; k< reconstructedHaplos.size();k++){
-      ofFASTA<< ">" << "reconstructed_"<<k<<". Freq:"<<
-      reconstructedFrequency[k] << ". Overlap quality scores:"; for(int i =0; i<
-      reconstructed_overlaps[k].size();i++){ ofFASTA << i+1<<":"<<
-      reconstructed_overlaps[k][i]<<"|";
-      }
-      if(have_true_haplotypes){
-      ofFASTA <<". "<<"Best match: true_"<< match[k]<<". Costs: "
-      <<match_costs[k];
-      }
-      ofFASTA << endl;
-    */
 
     for (int i = 0; i < GD; i++) {
       if (i > 0 && i % 70 == 0)
@@ -1490,83 +1453,6 @@ int local_Analysis(
     cout << "Number of reads in window: " << number_of_reads_in_window
          << " Selected upper bound: " << max_reads_in_window << endl;
     if (number_of_reads_in_window > max_reads_in_window) {
-
-      /*
-          // quality scoring
-
-
-          int n= reads_in_window.size();
-
-      int overlap = 30;
-      if(GD - 2*overlap <1)
-        overlap = 0.5*(GD-1);
-
-      vector<int> over_counts(GD-2*overlap,0);
-
-
-
-
-      for(int p =overlap; p<GD-overlap;p++){
-
-
-
-        vector<int> over_vec;
-        for(int o=0; o< n;o++){
-
-          int idx_start =  Positions_Start[ reads_in_window[o]]-WindowStart;
-          int idx_stop = Reads[ reads_in_window[o]].size() -1 + Positions_Start[
-      reads_in_window[o]]-WindowStart;
-
-
-
-
-          if(idx_start <= p && idx_stop >= p){
-
-            int over = p-idx_start;
-            if(idx_stop -p < over)
-              over = idx_stop -p;
-
-            over_vec.push_back(over);
-          }
-
-        }
-        sort( over_vec.begin(), over_vec.end(),   myfunction );
-        int i=0;
-        if(i<over_vec.size())
-          over_counts[p-overlap] = over_vec[i];
-
-
-
-
-      }
-
-      vector<int> index(over_counts.size());
-      for(int i =0; i<over_counts.size();i++)
-        index[i] = i;
-
-      sort(index.begin(), index.end(), index_cmp<vector<int>&>(over_counts) );
-
-      cout << " criticalPs: " << endl;
-      for(int i =0; i<over_counts.size();i++)
-        cout << over_counts[index[over_counts.size()-i-1]] <<' ';
-      cout << endl;
-      vector<int> criticalPs;
-      int ic =0;
-      int ind = index[over_counts.size()-ic-1];
-      while(over_counts[ind] < 30){
-        criticalPs.push_back(ind+overlap);
-        ic++;
-        if(ic > over_counts.size()-1)
-          break;
-        ind = index[over_counts.size()-ic-1];
-      }
-
-
-
-      ////////////////////////////
-
-      */
-
       number_of_reads_in_window = max_reads_in_window;
 
       reads_in_window.clear();
@@ -1646,30 +1532,7 @@ int local_Analysis(
 
                                    entropy_select, true);
 
-    ////////////////
     Matrix<double> maxConf(GD, K);
-    /*
-    for(int l =0; l<GD; l++){
-
-
-      for(int k =0; k< K; k++){
-
-        double mt = -1e100;
-
-        for(int p=0;p<levels;p++){
-          if( MNprobMEAN(l,k*levels+p) >  mt){
-            mt = MNprobMEAN(l,k*levels+p);
-            // maxTab(l,k) = p;
-            maxConf(l,k) = mt;
-          }
-        }
-
-      }
-
-    }
-    */
-
-    /////////////////////
 
     double lconf_scale = 0.75;
     vector<vector<int>> reconstructedHaplos;
@@ -1734,24 +1597,6 @@ int local_Analysis(
         maxConf(l, k) = freq[l](k, maxTab(l, k));
       }
     }
-
-    /*
-    /////////////
-    cout <<"////////////////////////" << endl;
-    for(int l =0; l<GD; l++){
-      int idx_global =   l+WindowStart-1;
-      if(entropy_select[idx_global] == 1){
-        for(int k =0; k< K; k++){
-          if( C_index[k] == 1){
-            cout << maxConf(l,k)<< '\t';
-          }
-        }
-        cout << endl;
-      }
-    }
-    cout <<"////////////////////////" << endl;
-    /////////////////
-    */
 
     // quality scoring
     vector<vector<int>> reconstructed_overlaps;
@@ -1871,22 +1716,6 @@ int local_Analysis(
     }
     ofReads.close();
 
-    /*
-    ostringstream s5;
-    s5 <<prefix << "hiv_StartStop_"<<WindowStart<<".start";
-    string s6 = s5.str();
-    ofstream ofStart(s6.c_str(),ios::out);
-
-    ofStart<< WindowStart<< endl;
-    ofStart<< WindowStop<< endl;
-    ofStart<< reconstructedHaplos.size()<< endl;
-    ofStart<< K<< endl;
-
-    ofStart.close();
-    */
-
-    //    foundClusters.push_back(reconstructedHaplos.size());
-
     vector<double> strand_K(reconstructedHaplos.size(), 0);
 
     int good_clusters = 0;
@@ -1907,11 +1736,6 @@ int local_Analysis(
         strand_K[cc] /= (16.0);
 
         strand_K[cc] = strand_K[cc] / (1e-5 + kcount - strand_K[cc]);
-        /*
-        if(fabs( log2(strand_K[cc])) < 3)
-        */
-        //	    if((fabs( log2(strand_K[cc])) < 5) &&
-        // reconstructed_overlaps[cc][reconstructed_overlaps[cc].size()-1]>10)
         if (reconstructed_overlaps[cc][reconstructed_overlaps[cc].size() - 1] >
             20) {
           good_clusters++;
@@ -2079,21 +1903,6 @@ int reconstruct_global(
 
   string isInWindow(nT, 'n');
 
-  /*
-  for(int i =0; i< WindowStartStop.size(); i++){
-    ostringstream s3;
-    s3 <<prefix << "hiv_reads_"<< WindowStartStop[i][0]<<".reads";
-    string s4 = s3.str();
-    ifstream ifReads(s4.c_str(),ios::in);
-
-
-    while( getline(ifReads,line,'\n') ){
-      readsIndicator[atoi(line.c_str())] = 1;
-    }
-    ifReads.close();
-  }
-  */
-
   int WindowStart = WindowStartStop[select_start][0];
   int WindowStop = WindowStartStop[select_start][1];
 
@@ -2172,15 +1981,6 @@ int reconstruct_global(
   Matrix<double> piMean(K, 1);
   vector<int> C = L;
 
-  /*
-  for(int k =0; k<K; k++){
-    nK_vec[k] = 0;
-  }
-  for(int j =0; j< n;j++){
-    nK_vec[L[j]] = nK_vec[L[j]]+1;
-  }
-  */
-
   Matrix<int> CMAX(n, K);
 
   int lseed = rand() % 123456;
@@ -2251,14 +2051,6 @@ int reconstruct_global(
 
     n = reads_in_window.size(); // number of reads in window
 
-    /*
-    for(int i =0; i<n; i++){
-      for(int k =0; k< K; k++)
-        cout <<  Assignments[i][k]<<'\t';
-      cout << endl;
-    }
-    */
-
     C = L;
     for (int i = n_old; i < n; i++)
       C[i] = rand() % K;
@@ -2322,32 +2114,6 @@ int reconstruct_global(
 
     ////////////////
     Matrix<double> maxConf(GD, K);
-    /*
-    for(int l =0; l<GD; l++){
-
-
-      for(int k =0; k< K; k++){
-
-        double mt = -1e100;
-
-        for(int p=0;p<levels;p++){
-          if( MNprobMEAN(l,k*levels+p) >  mt){
-            mt = MNprobMEAN(l,k*levels+p);
-            // maxTab(l,k) = p;
-            maxConf(l,k) = mt;
-          }
-        }
-
-      }
-
-    }
-
-
-    /////////////////////
-
-    */
-
-    //////////////////////////////////////
 
     Matrix<double> freq_M(K, levels);
     freq_M = 0;
@@ -2386,8 +2152,6 @@ int reconstruct_global(
         maxConf(l, k) = freq[l](k, maxTab(l, k));
       }
     }
-
-    // for( int i =n_init; i< n; i++){
 
     double assign_regularizer = 1e-5; // (1- burnin_fraction)*nSample*1e-1;
 
@@ -2530,7 +2294,6 @@ int reconstruct_global(
 
         double minD = 1e100;
         vector<int> dv(trueHaplos.size());
-        // cout << k<<": " ;
         for (int l = 0; l < trueHaplos.size(); l++) {
 
           int diff = 0;
@@ -2544,9 +2307,7 @@ int reconstruct_global(
           }
 
           dv[l] = diff;
-          // cout << diff <<' ';
         }
-        // cout << endl;
         diff_vec.push_back(dv);
       }
 
