@@ -112,12 +112,16 @@ bool include_deletions = true;
 int levels;
 
 int parse_sam_line(const vector<string> &tokens, string &used_qual,
-                   vector<int> &seq_b, double &a_score, char gap_quality,
-                   int &indels, bool &have_quality_scores, int &al_start) {
+                   vector<int> &seq_b, double &a_score, const char gap_quality,
+                   int &indels, bool &have_quality_scores,
+                   int &al_start) noexcept {
 
-  seq_b.clear();
   used_qual.clear();
+  seq_b.clear();
+  a_score = std::numeric_limits<double>::quiet_NaN();
   indels = 0;
+  have_quality_scores = true;
+  al_start = atoi(tokens[3].c_str());
 
   // cout <<"tokens.size(): " <<  tokens.size() << endl;
   for (int j = 11; j < tokens.size(); j++) {
@@ -127,8 +131,6 @@ int parse_sam_line(const vector<string> &tokens, string &used_qual,
       break;
     }
   }
-
-  al_start = atoi(tokens[3].c_str());
 
   vector<int> isCode(tokens[5].size(), 1);
   for (int i = 0; i < tokens[5].size(); i++) {
@@ -150,7 +152,6 @@ int parse_sam_line(const vector<string> &tokens, string &used_qual,
       sub_length++;
   }
 
-  have_quality_scores = true;
   string qual_s = tokens[10];
   if (qual_s.size() == 1 && qual_s[0] == '*')
     have_quality_scores = false;
@@ -276,9 +277,10 @@ void parseSAMpaired(string al, double max_gap_fraction,
       if (seq_b.size() > min_length && seq_b_pairs.size() > min_length &&
           double(indels) / seq_b.size() < max_gap_fraction &&
           double(indels_pairs) / seq_b_pairs.size() < max_gap_fraction &&
-          a_score / seq_b.size() > min_align_score_fraction &&
-          a_score_pairs / seq_b_pairs.size() > min_align_score_fraction) {
-
+          (std::isnan(a_score) ||
+           a_score / seq_b.size() > min_align_score_fraction) &&
+          (std::isnan(a_score_pairs) ||
+           a_score_pairs / seq_b_pairs.size() > min_align_score_fraction)) {
         int StartPos = al_start;
         vector<int> SEQ_combined = seq_b;
         string Qscores = used_qual;
