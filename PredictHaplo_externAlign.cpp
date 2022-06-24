@@ -37,6 +37,7 @@
 #include "scythestat/stat.h"
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
@@ -770,7 +771,11 @@ int MultiNomialDPMReadsSemiEntropy(
   return 0;
 }
 
-int visualizeAlignments(
+/**
+ * @return The path to the FASTA file that the reconstructed haplotypes were
+ * written to.
+ */
+std::string visualizeAlignments(
     int K, int WindowStart, int GD, const vector<int> &Positions_Start,
     const vector<vector<int>> &Reads, const vector<int> &reads_in_window,
     const vector<string> &IDs_in_window, const vector<string> &IDs,
@@ -1297,11 +1302,10 @@ int visualizeAlignments(
 
   // export reconstructed haplotypes in fasta format
 
-  ostringstream sVis2;
-  sVis2 << prefix << WindowStart << "_" << WindowStart + GD - 1 << ".fas";
-  string fasta_str = sVis2.str();
+  const auto fasta_output_path = prefix + std::to_string(WindowStart) + "_" +
+                                 std::to_string(WindowStart + GD - 1) + ".fas";
 
-  ofstream ofFASTA(fasta_str.c_str(), ios::out);
+  ofstream ofFASTA(fasta_output_path.c_str(), ios::out);
 
   for (int k = 0; k < reconstructedHaplos.size(); k++) {
 
@@ -1365,7 +1369,7 @@ int visualizeAlignments(
   }
   ofFASTA.close();
 
-  return 0;
+  return fasta_output_path;
 }
 
 int local_Analysis(
@@ -1893,7 +1897,8 @@ int reconstruct_global(
     bool have_true_haplotypes, const vector<vector<int>> &trueHaplos,
     const vector<int> &trueHaplo_Positions_Start,
     const vector<string> &trueHaplo_IDs, double entropy_threshold,
-    double entropy_fraction, const vector<int> &entropy_select) {
+    double entropy_fraction, const vector<int> &entropy_select,
+    const std::optional<std::string> &reconstructed_haplos_path) {
 
   string line;
   vector<string> tokens;
@@ -1994,8 +1999,11 @@ int reconstruct_global(
 
   int first = 1;
 
-  while (WindowStart > min_seq_start || WindowStop < max_seq_length - 1) {
+  const auto continue_increasing_window = [&]() {
+    return WindowStart > min_seq_start || WindowStop < max_seq_length - 1;
+  };
 
+  while (continue_increasing_window()) {
     int n_old = n;
 
     double increment = myrng.runif() * 50 + 0.4 * WindowIncrement;
@@ -2367,15 +2375,19 @@ int reconstruct_global(
       }
     }
 
-    string this_prefix = prefix + "global_";
+    const auto this_prefix = prefix + "global_";
 
-    visualizeAlignments(
+    const auto fasta_output_path = visualizeAlignments(
         K, WindowStart, GD, Positions_Start, Reads, reads_in_window,
         IDs_in_window, IDs, strand, this_prefix, SQ_string, entropy_select,
         C_index, L, maxTab, have_true_haplotypes, trueHaplos,
         trueHaplo_Positions_Start, trueHaplo_IDs, reconstructedHaplos,
         reconstructedConf, match, match_costs, make_pgm, reconstructedFrequency,
         reconstructed_overlaps, false, error_positions);
+
+    if (reconstructed_haplos_path && !continue_increasing_window()) {
+      std::filesystem::copy_file(fasta_output_path, *reconstructed_haplos_path);
+    }
   }
   return 0;
 }
@@ -2392,6 +2404,7 @@ int main(int argc, char *argv[]) {
     std::optional<std::string> FASTAreads;
     bool have_true_haplotypes = true;
     string FASTAhaplos;
+    std::optional<std::string> reconstructed_haplos_path;
 
     bool do_local_Analysis = true;
     double entropy_threshold = 4e-2;
@@ -2451,6 +2464,7 @@ int main(int argc, char *argv[]) {
         {"cluster_number", required_argument, NULL, 0},
         {"nSample", required_argument, NULL, 0},
         {"include_deletions", required_argument, NULL, 0},
+        {"reconstructed_haplotypes", required_argument, NULL, 0},
         {"help", no_argument, NULL, 0},
         {NULL, 0, NULL, 0}};
 
@@ -2507,6 +2521,8 @@ int main(int argc, char *argv[]) {
         nSample = atoi(optarg);
       } else if (choice == "include_deletions") {
         include_deletions = atoi(optarg);
+      } else if (choice == "reconstructed_haplotypes") {
+        reconstructed_haplos_path = optarg;
       } else if (choice == "help") {
         cout << "Usage: " << argv[0] << " [OPTIONS]\n"
              << "\n"
@@ -2558,6 +2574,8 @@ int main(int argc, char *argv[]) {
              << "  --nSample INT                     MCMC iterations.\n"
              << "  --include_deletions INT           Include deletions (0 = "
                 "no, 1 = yes).\n"
+             << "  --reconstructed_haplotypes FILE   Results of global "
+                "haplotype reconstruction are copied to FILE (FASTA format)."
              << "  --help                            Show this message and "
                 "exit.\n"
              << endl;
@@ -3100,7 +3118,8 @@ int main(int argc, char *argv[]) {
         select_start, nT, max_sequence_stop + 1, min_seq_start, Positions_Start,
         Reads, have_quality_scores, quality_scores, IDs, strand, prefix,
         SQ_string, have_true_haplotypes, trueHaplos, trueHaplo_Positions_Start,
-        trueHaplo_IDs, entropy_threshold, entropy_fraction, entropy_select);
+        trueHaplo_IDs, entropy_threshold, entropy_fraction, entropy_select,
+        reconstructed_haplos_path);
   } catch (const phaplo::Error &error) {
     std::cerr << "Error: " << error.what() << std::endl;
     return error.id();
