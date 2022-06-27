@@ -100,11 +100,11 @@ TEST_F(statistics_to_messages_Test,
 
   const auto messages = statistics_to_messages(statistics);
   ASSERT_EQ(messages.size(), 1);
-  EXPECT_EQ(
-      messages.front(),
-      "50.1\% of the read pairs were discarded because the alignment "
-      "score fraction is too low. The flag \"--min_align_score_fraction\" "
-      "can be used to configure the minimum alignment score fraction.");
+  EXPECT_EQ(messages.front(),
+            "50.1\% of the read pairs were discarded because the alignment "
+            "score fraction (scaled value of TAG \"AS\") is too low. The flag "
+            "\"--min_align_score_fraction\" can be used to configure the "
+            "minimum alignment score fraction.");
 }
 
 TEST_F(statistics_to_messages_Test, reports_multiple_error_messages) {
