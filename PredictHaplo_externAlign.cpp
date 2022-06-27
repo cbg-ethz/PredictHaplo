@@ -20,10 +20,12 @@
 #define R_finite(x) std::isfinite(x)
 
 #include "phaplo/Exception.hpp"
+#include "phaplo/ParseStatistics.hpp"
 #include "phaplo/binary.hpp"
 #include "phaplo/is_alignment_match.hpp"
 #include "phaplo/is_cigar_code.hpp"
 #include "phaplo/median.hpp"
+#include "phaplo/statistics_to_messages.hpp"
 #include "phaplo/to_vector_of_ints.hpp"
 #include "scythestat/distributions.h"
 #include "scythestat/ide.h"
@@ -217,14 +219,15 @@ int parse_sam_line(const vector<string> &tokens, string &used_qual,
   return 0;
 }
 
-void parseSAMpaired(string al, double max_gap_fraction,
-                    double min_align_score_fraction, double min_qual,
-                    int min_length, char gap_quality, double &mean_length,
-                    int &min_seq_start, int &max_seq_start,
-                    int &max_sequence_stop, int &min_sequence_stop,
-                    bool &have_quality_scores, vector<string> &quality_scores,
-                    vector<int> &strand, vector<vector<int>> &Reads,
-                    vector<int> &Positions_Start, vector<string> &IDs) {
+phaplo::ParseStatistics
+parseSAMpaired(string al, double max_gap_fraction,
+               double min_align_score_fraction, double min_qual, int min_length,
+               char gap_quality, double &mean_length, int &min_seq_start,
+               int &max_seq_start, int &max_sequence_stop,
+               int &min_sequence_stop, bool &have_quality_scores,
+               vector<string> &quality_scores, vector<int> &strand,
+               vector<vector<int>> &Reads, vector<int> &Positions_Start,
+               vector<string> &IDs) {
 
   string line;
 
@@ -240,11 +243,15 @@ void parseSAMpaired(string al, double max_gap_fraction,
 
   int indels, indels_pairs;
 
+  auto statistics = phaplo::ParseStatistics();
+
   std::unordered_map<std::string, std::vector<std::string>> candidates;
   while (getline(inf6, line, '\n')) {
     if (line[0] == '@') {
       continue;
     }
+
+    statistics.reads.total_count++;
 
     const auto tokens = tokenize(line, "\t");
     const auto RC = static_cast<unsigned int>(atoi(tokens[1].c_str()));
@@ -252,21 +259,35 @@ void parseSAMpaired(string al, double max_gap_fraction,
 
     const auto sRC = phaplo::binary(RC);
 
-    if (phaplo::used_bits(sRC) > 8)
+    if (phaplo::used_bits(sRC) > 8) {
+      statistics.reads.unsupported_attribute++;
       continue;
+    }
 
     const auto is_unmapped = bool{sRC[2] || sRC[3]};
     const auto is_paired_read = sRC[0];
 
-    if (is_unmapped || !is_paired_read)
+    if (is_unmapped) {
+      statistics.reads.unmapped++;
       continue;
+    }
+
+    if (!is_paired_read) {
+      statistics.reads.unpaired++;
+      continue;
+    }
 
     const auto found = candidates.find(id);
 
     if (found != candidates.end()) {
       const auto is_read1 = bool{sRC[6]};
-      const auto &tokens_1 = is_read1 ? tokens : found->second;
-      const auto &tokens_2 = !is_read1 ? tokens : found->second;
+      const auto tokens_1 =
+          is_read1 ? std::move(tokens) : std::move(found->second);
+      const auto tokens_2 =
+          !is_read1 ? std::move(tokens) : std::move(found->second);
+      candidates.erase(found);
+
+      statistics.pairs.total_count++;
 
       parse_sam_line(tokens_1, used_qual, seq_b, a_score, gap_quality, indels,
                      have_quality_scores, al_start);
@@ -274,121 +295,132 @@ void parseSAMpaired(string al, double max_gap_fraction,
                      gap_quality, indels_pairs, have_quality_scores,
                      al_start_pairs);
 
-      if (seq_b.size() > min_length && seq_b_pairs.size() > min_length &&
-          double(indels) / seq_b.size() < max_gap_fraction &&
-          double(indels_pairs) / seq_b_pairs.size() < max_gap_fraction &&
-          (std::isnan(a_score) ||
-           a_score / seq_b.size() > min_align_score_fraction) &&
-          (std::isnan(a_score_pairs) ||
-           a_score_pairs / seq_b_pairs.size() > min_align_score_fraction)) {
-        int StartPos = al_start;
-        vector<int> SEQ_combined = seq_b;
-        string Qscores = used_qual;
-        bool is_gap = false;
-        int Nlength = 0;
+      if (!(seq_b.size() > min_length && seq_b_pairs.size() > min_length)) {
+        statistics.pairs.sequence_too_short++;
+        continue;
+      }
 
-        if (al_start_pairs == al_start) {
-          // of_gaps << 0<<',';
+      if (!(double(indels) / seq_b.size() < max_gap_fraction &&
+            double(indels_pairs) / seq_b_pairs.size() < max_gap_fraction)) {
+        statistics.pairs.gap_fraction_too_high++;
+        continue;
+      }
+
+      if (!((std::isnan(a_score) ||
+             a_score / seq_b.size() > min_align_score_fraction) &&
+            (std::isnan(a_score_pairs) ||
+             a_score_pairs / seq_b_pairs.size() > min_align_score_fraction))) {
+        statistics.pairs.align_score_fraction_too_low++;
+        continue;
+      }
+
+      int StartPos = al_start;
+      vector<int> SEQ_combined = seq_b;
+      string Qscores = used_qual;
+      bool is_gap = false;
+      int Nlength = 0;
+
+      if (al_start_pairs == al_start) {
+        // of_gaps << 0<<',';
+      }
+
+      if (al_start_pairs < al_start) {
+        StartPos = al_start_pairs;
+
+        is_gap = false;
+        if (al_start - (al_start_pairs + (int)seq_b_pairs.size()) > 0) {
+          is_gap = true;
         }
 
-        if (al_start_pairs < al_start) {
-          StartPos = al_start_pairs;
+        if (is_gap) {
+
+          Nlength = al_start - (al_start_pairs + (int)seq_b_pairs.size());
+
+          vector<int> Ns(Nlength, 7);
+
+          seq_b_pairs.insert(seq_b_pairs.end(), Ns.begin(), Ns.end());
+          seq_b_pairs.insert(seq_b_pairs.end(), seq_b.begin(), seq_b.end());
+          SEQ_combined = seq_b_pairs;
+
+          string Nstr(Nlength, '_');
+
+          Qscores = used_qual_pairs + Nstr + used_qual;
+
+        } else {
+
+          // of_gaps << 0<<',';
+          vector<int> first_part(seq_b_pairs.begin(),
+                                 seq_b_pairs.begin() +
+                                     (al_start - al_start_pairs));
+          first_part.insert(first_part.end(), seq_b.begin(), seq_b.end());
+          SEQ_combined = first_part;
+
+          Qscores =
+              used_qual_pairs.substr(0, al_start - al_start_pairs) + used_qual;
+        }
+      } else {
+        if (al_start_pairs > al_start) {
 
           is_gap = false;
-          if (al_start - (al_start_pairs + (int)seq_b_pairs.size()) > 0) {
+          if (al_start_pairs - (al_start + (int)seq_b.size()) > 0) {
             is_gap = true;
           }
 
           if (is_gap) {
-
-            Nlength = al_start - (al_start_pairs + (int)seq_b_pairs.size());
+            Nlength = al_start_pairs - (al_start + (int)seq_b.size());
+            // of_gaps << Nlength<<',';
 
             vector<int> Ns(Nlength, 7);
 
-            seq_b_pairs.insert(seq_b_pairs.end(), Ns.begin(), Ns.end());
-            seq_b_pairs.insert(seq_b_pairs.end(), seq_b.begin(), seq_b.end());
-            SEQ_combined = seq_b_pairs;
+            seq_b.insert(seq_b.end(), Ns.begin(), Ns.end());
+            seq_b.insert(seq_b.end(), seq_b_pairs.begin(), seq_b_pairs.end());
+            SEQ_combined = seq_b;
 
-            string Nstr(Nlength, '_');
-
-            Qscores = used_qual_pairs + Nstr + used_qual;
-
+            string Nstr(Nlength, 'Z');
+            Qscores = used_qual + Nstr + used_qual_pairs;
           } else {
-
             // of_gaps << 0<<',';
-            vector<int> first_part(seq_b_pairs.begin(),
-                                   seq_b_pairs.begin() +
-                                       (al_start - al_start_pairs));
-            first_part.insert(first_part.end(), seq_b.begin(), seq_b.end());
+            vector<int> first_part(seq_b.begin(),
+                                   seq_b.begin() + (al_start_pairs - al_start));
+
+            first_part.insert(first_part.end(), seq_b_pairs.begin(),
+                              seq_b_pairs.end());
             SEQ_combined = first_part;
 
-            Qscores = used_qual_pairs.substr(0, al_start - al_start_pairs) +
-                      used_qual;
+            Qscores = used_qual.substr(0, al_start_pairs - al_start) +
+                      used_qual_pairs;
           }
-        } else {
-          if (al_start_pairs > al_start) {
-
-            is_gap = false;
-            if (al_start_pairs - (al_start + (int)seq_b.size()) > 0) {
-              is_gap = true;
-            }
-
-            if (is_gap) {
-              Nlength = al_start_pairs - (al_start + (int)seq_b.size());
-              // of_gaps << Nlength<<',';
-
-              vector<int> Ns(Nlength, 7);
-
-              seq_b.insert(seq_b.end(), Ns.begin(), Ns.end());
-              seq_b.insert(seq_b.end(), seq_b_pairs.begin(), seq_b_pairs.end());
-              SEQ_combined = seq_b;
-
-              string Nstr(Nlength, 'Z');
-              Qscores = used_qual + Nstr + used_qual_pairs;
-            } else {
-              // of_gaps << 0<<',';
-              vector<int> first_part(
-                  seq_b.begin(), seq_b.begin() + (al_start_pairs - al_start));
-
-              first_part.insert(first_part.end(), seq_b_pairs.begin(),
-                                seq_b_pairs.end());
-              SEQ_combined = first_part;
-
-              Qscores = used_qual.substr(0, al_start_pairs - al_start) +
-                        used_qual_pairs;
-            }
-          }
-        }
-
-        if (!is_gap || Nlength < 200) {
-          Positions_Start.push_back(StartPos);
-          Reads.push_back(SEQ_combined);
-          IDs.push_back(id);
-          mean_length += SEQ_combined.size();
-
-          string qNeqStr(SEQ_combined.size(), 'Z');
-
-          quality_scores.push_back(Qscores);
-          strand.push_back(RC);
-
-          if (al_start + seq_b.size() > max_sequence_stop)
-            max_sequence_stop = al_start + seq_b.size();
-
-          if (al_start + seq_b.size() < min_sequence_stop)
-            min_sequence_stop = al_start + seq_b.size();
-
-          if (al_start < min_seq_start)
-            min_seq_start = al_start;
-
-          if (al_start > max_seq_start)
-            max_seq_start = al_start;
         }
       }
-      candidates.erase(found);
+
+      if (!is_gap || Nlength < 200) {
+        Positions_Start.push_back(StartPos);
+        Reads.push_back(SEQ_combined);
+        IDs.push_back(id);
+        mean_length += SEQ_combined.size();
+
+        string qNeqStr(SEQ_combined.size(), 'Z');
+
+        quality_scores.push_back(Qscores);
+        strand.push_back(RC);
+
+        if (al_start + seq_b.size() > max_sequence_stop)
+          max_sequence_stop = al_start + seq_b.size();
+
+        if (al_start + seq_b.size() < min_sequence_stop)
+          min_sequence_stop = al_start + seq_b.size();
+
+        if (al_start < min_seq_start)
+          min_seq_start = al_start;
+
+        if (al_start > max_seq_start)
+          max_seq_start = al_start;
+      }
     } else {
       candidates[id] = tokens;
     }
   }
+  return statistics;
 }
 
 int MultiNomialDPMReadsSemiEntropy(
@@ -2688,11 +2720,14 @@ int main(int argc, char *argv[]) {
     int min_sequence_stop = 100000;
     int max_seq_start = 0;
 
-    parseSAMpaired(FASTAreads.value(), max_gap_fraction,
-                   min_align_score_fraction, min_qual, min_length, gap_quality,
-                   mean_length, min_seq_start, max_seq_start, max_sequence_stop,
-                   min_sequence_stop, have_quality_scores, quality_scores,
-                   strand, Reads, Positions_Start, IDs);
+    for (auto &&message : phaplo::statistics_to_messages(parseSAMpaired(
+             FASTAreads.value(), max_gap_fraction, min_align_score_fraction,
+             min_qual, min_length, gap_quality, mean_length, min_seq_start,
+             max_seq_start, max_sequence_stop, min_sequence_stop,
+             have_quality_scores, quality_scores, strand, Reads,
+             Positions_Start, IDs))) {
+      std::cerr << "Warning: " << message << std::endl;
+    }
 
     if (Reads.empty()) {
       throw phaplo::Error(phaplo::ErrorCode::no_valid_reads);

@@ -31,6 +31,7 @@ add_executable(
   binary_Test.cpp
   Exception_Test.cpp
   is_cigar_code_Test.cpp
+  statistics_to_messages_Test.cpp
 )
 target_link_libraries(
   phaplo_Tests
