@@ -80,7 +80,7 @@ statistics_to_messages(const ParseStatistics &statistics) noexcept {
         to_pairs_percentage(statistics.pairs.align_score_fraction_too_low) +
         " of the read pairs were discarded because the alignment score "
         "fraction is too low. The flag \"--min_align_score_fraction\" can be "
-        "used to configure the mininum alignment score fraction.");
+        "used to configure the minimum alignment score fraction.");
   }
 
   return r;

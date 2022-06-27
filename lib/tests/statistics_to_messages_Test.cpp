@@ -104,7 +104,7 @@ TEST_F(statistics_to_messages_Test,
       messages.front(),
       "50.1\% of the read pairs were discarded because the alignment "
       "score fraction is too low. The flag \"--min_align_score_fraction\" "
-      "can be used to configure the mininum alignment score fraction.");
+      "can be used to configure the minimum alignment score fraction.");
 }
 
 TEST_F(statistics_to_messages_Test, reports_multiple_error_messages) {
