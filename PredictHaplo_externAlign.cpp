@@ -2386,7 +2386,14 @@ int reconstruct_global(
         reconstructed_overlaps, false, error_positions);
 
     if (reconstructed_haplos_path && !continue_increasing_window()) {
-      std::filesystem::copy_file(fasta_output_path, *reconstructed_haplos_path);
+      try {
+        std::filesystem::copy_file(fasta_output_path,
+                                   *reconstructed_haplos_path);
+      } catch (const std::filesystem::filesystem_error &error) {
+        std::cerr << "Warning: Copying the reconstructed haplotypes to '"
+                  << *reconstructed_haplos_path << "' failed ('" << error.what()
+                  << "')." << std::endl;
+      }
     }
   }
   return 0;
